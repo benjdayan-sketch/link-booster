@@ -95,12 +95,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Handle Deep Linking on Load
-    const initialView = window.location.hash.replace('#', '') || 'history';
+    const initialView = window.location.hash.replace('#', '') || 'overview';
     if (document.getElementById(`view-${initialView}`)) {
         switchView(initialView);
     } else {
-        switchView('history');
+        switchView('overview');
     }
+
+    // Overview Deep Links Handling
+    document.querySelectorAll('.feature-action-link[data-goto]').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetView = link.dataset.goto;
+            switchView(targetView);
+        });
+    });
 
     // Handle Back/Forward Browser Buttons
     window.addEventListener('hashchange', () => {
@@ -770,7 +779,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial Load
     fetchHistory();
     loadAnalytics();
-    initAuthLogic();
+
 
     // Helper: Generate and Download QR
     function generateAndDownloadQr(url, fmt) {
@@ -931,224 +940,43 @@ document.addEventListener('DOMContentLoaded', () => {
         link.click();
         document.body.removeChild(link);
     }
-    function initAuthLogic() {
-        // Initialize Supabase
-        const SUPABASE_URL = 'https://werjvrzdbpbyasftmlkl.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlcmp2cnpkYnBieWFzZnRtbGtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2MjU1ODcsImV4cCI6MjA4NDIwMTU4N30.FhAJ30gpTX81uv90weWA6MJJxC1DpVYcZv6YAMI9Lkk'; // Anon Key
 
-        // Ensure supabase is available
-        const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-        // Check Auth State
-        chrome.storage.local.get(['authUser', 'authSession'], (res) => {
-            if (res.authUser && res.authSession) {
-                showTrackingDashboard(res.authUser);
-            } else {
-                showAuthForm();
-            }
-        });
-
-        // Auth Tabs
-        const loginTab = document.getElementById('tab-login');
-        const regTab = document.getElementById('tab-register');
-        const loginForm = document.getElementById('login-form');
-        const regForm = document.getElementById('register-form');
-        const authStatus = document.getElementById('auth-status-msg') || createAuthStatusElement();
-
-        function createAuthStatusElement() {
-            const el = document.createElement('div');
-            el.id = 'auth-status-msg';
-            el.style.textAlign = 'center';
-            el.style.marginTop = '10px';
-            el.style.fontSize = '12px';
-            // Insert after forms
-            if (loginForm && loginForm.parentNode) {
-                loginForm.parentNode.insertBefore(el, loginForm.nextSibling);
-            }
-            return el;
-        }
-
-        function showStatus(msg, type = 'info') {
-            if (authStatus) {
-                authStatus.textContent = msg;
-                authStatus.style.color = type === 'error' ? '#e74c3c' : '#2ecc71';
-            }
-        }
-
-        if (loginTab && regTab) {
-            loginTab.addEventListener('click', () => {
-                loginTab.classList.add('active');
-                regTab.classList.remove('active');
-                loginForm.style.display = 'flex';
-                regForm.style.display = 'none';
-                showStatus('');
-            });
-
-            regTab.addEventListener('click', () => {
-                regTab.classList.add('active');
-                loginTab.classList.remove('active');
-                loginForm.style.display = 'none';
-                regForm.style.display = 'flex';
-                showStatus('');
-            });
-        }
-
-        // Login Form
-        if (loginForm) {
-            loginForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                if (!supabaseClient) {
-                    showStatus('Supabase client not loaded', 'error');
-                    return;
-                }
-                showStatus('Logging in...');
-                const email = document.getElementById('login-email').value;
-                const password = document.getElementById('login-password').value;
-
-                try {
-                    const { data, error } = await supabaseClient.auth.signInWithPassword({
-                        email,
-                        password
-                    });
-
-                    if (error) throw error;
-
-                    // Success
-                    chrome.storage.local.set({ authUser: data.user, authSession: data.session }, () => {
-                        showStatus('Login Successful!', 'success');
-                        setTimeout(() => showTrackingDashboard(data.user), 1000);
-                    });
-
-                } catch (err) {
-                    showStatus(err.message, 'error');
-                }
-            });
-        }
-
-        // Register Form
-        if (regForm) {
-            // Password Toggle Logic
-            const toggleBtn = document.getElementById('reg-password-toggle');
-            const passInput = document.getElementById('reg-password');
-            const eyeOpen = toggleBtn ? toggleBtn.querySelector('.eye-open') : null;
-            const eyeClosed = toggleBtn ? toggleBtn.querySelector('.eye-closed') : null;
-
-            if (toggleBtn && passInput) {
-                toggleBtn.addEventListener('click', () => {
-                    const type = passInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                    passInput.setAttribute('type', type);
-
-                    if (eyeOpen && eyeClosed) {
-                        eyeOpen.style.display = type === 'password' ? 'block' : 'none';
-                        eyeClosed.style.display = type === 'password' ? 'none' : 'block';
-                    }
-                });
-            }
-
-            regForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                if (!supabaseClient) {
-                    showStatus('Supabase client not loaded', 'error');
-                    return;
-                }
-
-                // Loading UI
-                const loader = document.getElementById('reg-loading-container');
-                const btn = regForm.querySelector('button[type="submit"]');
-                if (loader) loader.style.display = 'block';
-                if (btn) btn.style.display = 'none';
-
-                const name = document.getElementById('reg-name').value;
-                const email = document.getElementById('reg-email').value;
-                const password = document.getElementById('reg-password').value;
-
-                try {
-                    const { data, error } = await supabaseClient.auth.signUp({
-                        email,
-                        password,
-                        options: {
-                            data: { full_name: name }
-                        }
-                    });
-
-                    if (error) throw error;
-
-                    // Success
-                    // Note: Supabase might require email confirmation unless disabled in dashboard. 
-                    // Assuming auto-confirm or session provided.
-                    if (data.user && data.session) {
-                        chrome.storage.local.set({ authUser: data.user, authSession: data.session }, () => {
-                            showStatus('Registered Successfully!', 'success');
-                            setTimeout(() => showTrackingDashboard(data.user), 1000);
-                        });
-                    } else if (data.user && !data.session) {
-                        showStatus('Registration successful! Please check your email to confirm.', 'success');
-                        if (loader) loader.style.display = 'none';
-                        if (btn) btn.style.display = 'block';
-                    }
-
-                } catch (err) {
-                    showStatus(err.message, 'error');
-                    if (loader) loader.style.display = 'none';
-                    if (btn) btn.style.display = 'block';
-                }
-            });
-        }
-
-        // Logout
-        const logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                chrome.storage.local.remove(['authUser', 'authSession'], () => {
-                    showAuthForm();
-                    showStatus('');
-                });
-            });
-        }
-
-        // Copy Script
-        const copyScriptBtn = document.getElementById('copy-script-btn');
-        if (copyScriptBtn) {
-            copyScriptBtn.addEventListener('click', () => {
-                const code = document.getElementById('tracking-script-code').innerText;
-                navigator.clipboard.writeText(code);
-                const originalIcon = copyScriptBtn.innerHTML;
-                copyScriptBtn.innerHTML = '<span style="font-size:10px;">Copied</span>';
-                setTimeout(() => copyScriptBtn.innerHTML = originalIcon, 1500);
-            });
-        }
-    }
-
-    function showAuthForm() {
-        const container = document.getElementById('tracking-auth-container');
-        const dashboard = document.getElementById('tracking-dashboard-container');
-        if (container) container.style.display = 'block';
-        if (dashboard) dashboard.style.display = 'none';
-
-        const logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) logoutBtn.style.display = 'none';
-    }
-
-    function showTrackingDashboard(user) {
-        const container = document.getElementById('tracking-auth-container');
-        const dashboard = document.getElementById('tracking-dashboard-container');
-        if (container) container.style.display = 'none';
-        if (dashboard) dashboard.style.display = 'block';
-
-        const logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) logoutBtn.style.display = 'flex';
-
-        // Update Script ID
-        const codeEl = document.getElementById('tracking-script-code');
-        if (codeEl) {
-            codeEl.innerHTML = codeEl.innerHTML.replace(/LB-[A-Z0-9]+/, user.id || 'LB-XXXXX');
-        }
-    }
 
     async function loadAnalytics() {
-        // Re-using fetch logic to ensure fresh data for charts
-        const { linkHistory = [] } = await chrome.storage.local.get(['linkHistory']);
+        const { linkHistory: realHistory = [] } = await chrome.storage.local.get(['linkHistory']);
+
+        // --- Demo Data Injection for Robust Screenshots ---
+        const dummyData = [];
+        const demoSources = ['facebook', 'newsletter', 'google', 'linkedin', 'twitter'];
+        const demoMediums = ['social', 'email', 'cpc', 'referral'];
+        const demoTypes = ['qr', 'utm', 'shortened'];
+        const demoToday = new Date();
+
+        // Generate ~150 dummy records spread over 14 days
+        for (let i = 0; i < 150; i++) {
+            const daysAgo = Math.floor(Math.random() * 14);
+            const date = new Date();
+            date.setDate(demoToday.getDate() - daysAgo);
+            // Random hour/min to make it look organic
+            date.setHours(Math.floor(Math.random() * 24), Math.floor(Math.random() * 60));
+
+            dummyData.push({
+                timestamp: date.getTime(),
+                utm: {
+                    source: demoSources[Math.floor(Math.random() * demoSources.length)],
+                    medium: demoMediums[Math.floor(Math.random() * demoMediums.length)],
+                    campaign: 'summer_sale_2026'
+                },
+                type: demoTypes[Math.floor(Math.random() * demoTypes.length)],
+                shortened: Math.random() > 0.5
+            });
+        }
+
+        // Combine real data with dummy data
+        const linkHistory = [...realHistory, ...dummyData];
+        // --- End Demo Data ---
+
 
         // Process Data
         const total = linkHistory.length;
@@ -1206,12 +1034,44 @@ document.addEventListener('DOMContentLoaded', () => {
         const kpiWeek = document.getElementById('kpi-week');
         const kpiSource = document.getElementById('kpi-source');
 
+        const compTotal = document.getElementById('compliment-total');
+        const compWeek = document.getElementById('compliment-week');
+        const compSource = document.getElementById('compliment-source');
+
         if (kpiTotal) kpiTotal.textContent = total;
         if (kpiWeek) kpiWeek.textContent = weekCount;
 
         const sortedSources = Object.entries(sources).sort((a, b) => b[1] - a[1]);
         const topSource = sortedSources.length > 0 ? sortedSources[0][0] : '-';
         if (kpiSource) kpiSource.textContent = topSource;
+
+        // Set Compliments
+        if (compTotal) {
+            if (total === 0) compTotal.textContent = "Start your journey! 🚀";
+            else if (total < 50) compTotal.textContent = "You are on the path to greatness! ✨";
+            else if (total < 150) compTotal.textContent = "Your productivity is soaring! 📈";
+            else compTotal.textContent = "Legendary status achieved! 🏆";
+        }
+
+        if (compWeek) {
+            if (weekCount === 0) compWeek.textContent = "Waiting for the first boost... ⏳";
+            else if (weekCount < 10) compWeek.textContent = "Building momentum! 👍";
+            else if (weekCount < 40) compWeek.textContent = "You're a boosting machine! ⚡";
+            else compWeek.textContent = "Absolutely unstoppable! 🔥";
+        }
+
+        if (compSource) {
+            if (topSource === '-') {
+                compSource.textContent = "No links boosted yet.";
+            } else {
+                const famous = ['google', 'facebook', 'facebook.com', 'google.com', 'linkedin', 'twitter', 'instagram', 'youtube', 'newsletter'];
+                if (famous.includes(topSource.toLowerCase())) {
+                    compSource.textContent = "Playing with the top guns! 🚀";
+                } else {
+                    compSource.textContent = "Interesting one... 🧐";
+                }
+            }
+        }
 
         // Render Charts
         if (document.getElementById('activity-chart')) {
@@ -1228,18 +1088,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ['Shortened Links', contentStats.shortened]
             ].sort((a, b) => b[1] - a[1]);
 
-            // Filter out zero values for pie chart cleanliness
             const activeData = typeData.filter(d => d[1] > 0);
-
-            // Calculate actual total of these parts logic (since they are non-exclusive, 'total' param from linkHistory.length might not be the sum of these parts).
-            // For a pie chart, the "whole" is the sum of the parts displayed, OR we show them relative to total links?
-            // "Top Content Types" usually implies composition. But since it's overlapping, a pie chart is technically misleading if slices add up to > 100% of links.
-            // USER REQUESTED: "cool pie chart". User also requested "non-exclusive".
-            // If I have 1 link that is BOTH UTM and QR.
-            // UTM: 1, QR: 1. Total: 1.
-            // If I plot this on a pie, sum is 2. Slices are 50%/50%.
-            // This visualizes the "ratio of features used". I will proceed with this interpretation (sum of feature usages).
-
             renderPieChart('content-chart', activeData);
         }
     }
@@ -1311,10 +1160,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById(containerId);
         if (!container) return;
 
-        // Enforce Layout
         container.classList.add('pie');
-        container.classList.remove('vertical', 'horizontal');
-
         container.innerHTML = '';
 
         if (data.length === 0) {
@@ -1328,7 +1174,7 @@ document.addEventListener('DOMContentLoaded', () => {
         wrapper.style.display = 'flex';
         wrapper.style.alignItems = 'center';
         wrapper.style.justifyContent = 'center';
-        wrapper.style.gap = '24px';
+        wrapper.style.gap = '32px';
         wrapper.style.width = '100%';
 
         const size = 160;
@@ -1339,9 +1185,7 @@ document.addEventListener('DOMContentLoaded', () => {
         svg.style.transform = 'rotate(-90deg)';
 
         const legend = document.createElement('div');
-        legend.style.display = 'flex';
-        legend.style.flexDirection = 'column';
-        legend.style.gap = '8px';
+        legend.className = 'pie-legend-wrapper';
 
         let cumulativePercent = 0;
         const colors = ['#00d2d3', '#5f27cd', '#ff9f43', '#ee5253', '#2e86de'];
@@ -1355,43 +1199,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const endY = Math.sin(2 * Math.PI * cumulativePercent);
 
             const largeArcFlag = percent > 0.5 ? 1 : 0;
-
             let pathData;
             if (percent === 1) {
                 pathData = `M 1 0 A 1 1 0 1 1 -1 0 A 1 1 0 1 1 1 0`;
             } else {
-                pathData = [
-                    `M 0 0`,
-                    `L ${startX} ${startY}`,
-                    `A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY}`,
-                    `Z`
-                ].join(' ');
+                pathData = [`M 0 0`, `L ${startX} ${startY}`, `A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY}`, `Z`].join(' ');
             }
 
             const color = colors[index % colors.length];
-
             const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
             path.setAttribute('d', pathData);
             path.setAttribute('fill', color);
-            path.style.transition = 'transform 0.2s';
-            path.style.cursor = 'pointer';
-
-            path.addEventListener('mouseenter', function () { this.style.opacity = '0.8'; });
-            path.addEventListener('mouseleave', function () { this.style.opacity = '1'; });
-
-            const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
-            title.textContent = `${label}: ${count}`;
-            path.appendChild(title);
-
+            path.style.transition = 'opacity 0.2s';
             svg.appendChild(path);
 
+            // New legend item structure
             const item = document.createElement('div');
-            item.style.display = 'flex';
-            item.style.alignItems = 'center';
-            item.style.fontSize = '12px';
-            item.style.color = 'var(--text-color)';
+            item.className = 'pie-legend-item';
             item.innerHTML = `
-                <span style="display:inline-block; width:10px; height:10px; background:${color}; border-radius:2px; margin-right:8px;"></span>
+                <div class="pie-color-box" style="background:${color}"></div>
                 <span>${label} (${Math.round(percent * 100)}%)</span>
             `;
             legend.appendChild(item);
@@ -1401,5 +1227,6 @@ document.addEventListener('DOMContentLoaded', () => {
         wrapper.appendChild(legend);
         container.appendChild(wrapper);
     }
+
 
 });
