@@ -223,7 +223,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-
+    // Option: Open Analytics
+    const analyticsBtn = document.getElementById('analytics-btn');
+    if (analyticsBtn) {
+        analyticsBtn.addEventListener('click', () => {
+            window.open(chrome.runtime.getURL('dashboard.html'));
+        });
+    }
 
     // Option: Open Learn
     const learnLink = document.getElementById('learn-utm-link');

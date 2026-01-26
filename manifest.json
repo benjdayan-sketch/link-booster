@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Link Booster",
-  "version": "2.1",
-  "description": "Professional link engineering: Clean tracking, branded QR codes, TinyURL shortening, and UTM presets. No account required, 100% private.",
+  "version": "2.0",
+  "description": "Boost your links! Clean tracking params, auto-detect language for social sharing, shorten URLs, and generate QR codes.",
   "permissions": [
     "contextMenus",
     "scripting",
@@ -11,6 +11,7 @@
   ],
   "host_permissions": [
     "https://tinyurl.com/*",
+    "https://werjvrzdbpbyasftmlkl.supabase.co/*",
     "<all_urls>"
   ],
   "options_page": "options.html",
