@@ -1,0 +1,154 @@
+/* QR Code Detection Tooltip Styles */
+.lb-qr-tooltip {
+    /* Default Dark Theme Variables */
+    --bg-color: #1e1e1e;
+    --card-bg: #2d2d2d;
+    --border-color: #444444;
+    --text-color: #ecf0f1;
+    --secondary-text: #b2bec3;
+    --primary-color: #25D6D7;
+    --btn-secondary-bg: #333;
+    --btn-secondary-border: #444;
+    --link-bg: rgba(0, 0, 0, 0.2);
+
+    position: absolute;
+    z-index: 2147483647;
+    /* Max z-index */
+
+    background: var(--bg-color);
+    color: var(--text-color);
+    padding: 12px;
+    border-radius: 8px;
+    /* Match popup radius */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    /* Broader shadow */
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 13px;
+    max-width: 280px;
+    animation: lb-fade-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1px solid var(--border-color);
+    pointer-events: auto;
+}
+
+/* Light Mode Overrides */
+.lb-qr-tooltip[data-theme="light"] {
+    --bg-color: #f8f9fa;
+    --card-bg: #ffffff;
+    --border-color: #dfe6e9;
+    --text-color: #333333;
+    --secondary-text: #636e72;
+    --primary-color: #25D6D7;
+    --btn-secondary-bg: #f1f3f5;
+    --btn-secondary-border: #dfe6e9;
+    --link-bg: rgba(0, 0, 0, 0.05);
+}
+
+.lb-qr-tooltip-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.lb-qr-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 2px;
+}
+
+.lb-qr-logo {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    object-fit: contain;
+}
+
+.lb-qr-title {
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--secondary-text);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* URL Display - Bottom */
+.lb-qr-link {
+    color: var(--secondary-text);
+    font-size: 11px;
+    font-family: Consolas, monospace;
+    word-break: break-all;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+    background: var(--link-bg);
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+/* Actions Row - Top */
+.lb-qr-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.lb-qr-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    text-align: center;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    position: relative;
+    /* Prevent text selection */
+    user-select: none;
+}
+
+/* Primary Cyan Gradient Button (Like Extension) */
+.lb-qr-btn-primary {
+    background: linear-gradient(135deg, #25D6D7, #22a6a7);
+    color: white;
+    /* White text on bright button */
+    box-shadow: 0 2px 6px rgba(37, 214, 215, 0.25);
+}
+
+.lb-qr-btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(37, 214, 215, 0.35);
+}
+
+/* Secondary Low-Emphasis Button */
+.lb-qr-btn-secondary {
+    background: var(--btn-secondary-bg);
+    border: 1px solid var(--btn-secondary-border);
+    color: var(--text-color);
+}
+
+.lb-qr-btn-secondary:hover {
+    background: var(--card-bg);
+    /* Slight contrast on hover */
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+@keyframes lb-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}

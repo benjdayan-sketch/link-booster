@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Booster Dashboard</title>
+    <link rel="stylesheet" href="options.css">
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo-area">
+                <img src="assets/link-booster-logo-clean.png" alt="Link Booster">
+            </div>
+
+            <nav>
+                <a href="#" class="nav-item active" data-view="history">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    History
+                </a>
+                <a href="#" class="nav-item" data-view="presets">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path>
+                        <line x1="16" y1="8" x2="2" y2="22"></line>
+                        <line x1="17.5" y1="15" x2="9" y2="15"></line>
+                    </svg>
+                    UTM Presets
+                </a>
+                <a href="#" class="nav-item" data-view="qr-settings">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    QR Options
+                </a>
+                <a href="#" class="nav-item" data-view="analytics">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                    Analytics
+                </a>
+                <a href="#" class="nav-item" data-view="tracking">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                    </svg>
+                    Website Tracking
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="nav-group-label" style="padding-left: 16px; margin-bottom: 8px;">Information</div>
+                <a href="#" class="nav-item" data-view="privacy">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                    Privacy
+                </a>
+                <a href="#" class="nav-item" data-view="learn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                    Learn UTM
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header>
+                <h1 id="page-title">Analytics</h1>
+                <div class="theme-toggle" id="theme-toggle-btn" title="Toggle Dark Mode"></div>
+            </header>
+
+            <!-- Analytics View -->
+            <div id="view-analytics" class="view-section active">
+                <!-- KPI Cards -->
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-label">Total Boosted</div>
+                        <div class="kpi-value" id="kpi-total">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">This Week</div>
+                        <div class="kpi-value" id="kpi-week">0</div>
+                        <div class="kpi-trend" id="kpi-trend">--</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Top Source</div>
+                        <div class="kpi-value small" id="kpi-source">--</div>
+                    </div>
+                </div>
+
+                <!-- Charts Area -->
+                <div class="charts-row">
+                    <div class="chart-card wide">
+                        <h3>Boosting Activity (Last 14 Days)</h3>
+                        <div class="chart-container" id="activity-chart">
+                            <!-- SVG Bar Chart Injected Here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-row">
+                    <div class="chart-card">
+                        <h3>Top UTM Sources</h3>
+                        <div class="chart-container" id="source-chart">
+                            <!-- SVG Horizontal Bars -->
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Top Content Types</h3>
+                        <div class="chart-container" id="content-chart">
+                            <!-- simple list or pie equivalent -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Website Tracking View -->
+            <div id="view-tracking" class="view-section" style="display: none;">
+                <!-- Auth Container -->
+                <div id="tracking-auth-container">
+                    <div class="auth-card">
+                        <h2>Website Analytics</h2>
+                        <p class="auth-subtitle">Track page views, sessions, and boosted link performance on your site.
+                        </p>
+
+                        <div class="auth-tabs">
+                            <button class="auth-tab active" id="tab-login">Login</button>
+                            <button class="auth-tab" id="tab-register">Register</button>
+                        </div>
+
+                        <form id="login-form">
+                            <div class="input-group">
+                                <input type="email" id="login-email" placeholder="Email" required>
+                            </div>
+                            <div class="input-group">
+                                <input type="password" id="login-password" placeholder="Password" required>
+                            </div>
+                            <button type="submit" class="primary-btn full-width">Login</button>
+                        </form>
+
+                        <form id="register-form" style="display:none;">
+                            <div class="input-group">
+                                <input type="text" id="reg-name" placeholder="Full Name" autocomplete="name" required>
+                            </div>
+                            <div class="input-group">
+                                <input type="email" id="reg-email" placeholder="Email" autocomplete="email" required>
+                            </div>
+                            <div class="input-group password-group">
+                                <input type="password" id="reg-password" placeholder="Password"
+                                    autocomplete="new-password" required>
+                                <span class="password-toggle" id="reg-password-toggle" title="Show Password">
+                                    <svg viewBox="0 0 24 24" fill="none" class="eye-open" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                        style="display:block;">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                    <svg viewBox="0 0 24 24" fill="none" class="eye-closed" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                        style="display:none;">
+                                        <path
+                                            d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                                        </path>
+                                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                                    </svg>
+                                </span>
+                            </div>
+                            <button type="submit" class="primary-btn full-width">Create Account</button>
+                            <div id="reg-loading-container" style="display:none; text-align:center; padding-top:10px;">
+                                <div class="spinner"></div>
+                                <span class="loading-text"
+                                    style="font-size:13px; color:var(--secondary-text); margin-left:8px;">Registering...</span>
+                            </div>
+                        </form>
+
+                        <div class="auth-divider">
+                            <span>or continue with</span>
+                        </div>
+
+                        <div class="social-login-row">
+                            <button class="social-btn google" id="social-google" title="Google">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                        fill="#4285F4" />
+                                    <path
+                                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                        fill="#34A853" />
+                                    <path
+                                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                                        fill="#FBBC05" />
+                                    <path
+                                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                                        fill="#EA4335" />
+                                </svg>
+                            </button>
+                            <button class="social-btn facebook" id="social-facebook" title="Facebook">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="#1877F2"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                                </svg>
+                            </button>
+                            <button class="social-btn apple" id="social-apple" title="Apple">
+                                <svg width="24" height="24" viewBox="0 0 384 512" fill="currentColor"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Container -->
+                <div id="tracking-dashboard-container" style="display: none;">
+                    <div class="tracking-header">
+                        <h3>Your Website Stats</h3>
+                        <div style="margin-left:auto; display:flex; align-items:center;">
+                            <a href="#" id="logout-btn"
+                                style="color:var(--danger-color); text-decoration:none; font-size:14px; font-weight:600; display:flex; align-items:center; gap:6px;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
+                                Logout
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Script Snippet -->
+                    <div class="script-card">
+                        <div class="script-header">
+                            <span class="script-title">Tracking Script</span>
+                            <span class="script-subtitle">Add this to your website's &lt;head&gt;</span>
+                        </div>
+                        <div class="code-block">
+                            <code id="tracking-script-code">
+&lt;script&gt;
+  (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://api.link-booster.io/analytics.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','lbAnalytics','LB-USER-ID');
+&lt;/script&gt;
+                            </code>
+                            <button id="copy-script-btn" class="copy-icon-btn" title="Copy Script">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- New Metrics -->
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-label">Page Views</div>
+                            <div class="kpi-value" id="kpi-views">12,402</div>
+                            <div class="kpi-trend positive">+12%</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Avg. Session</div>
+                            <div class="kpi-value" id="kpi-session">2m 14s</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Boosted Clicks</div>
+                            <div class="kpi-value" id="kpi-clicks">843</div>
+                        </div>
+                    </div>
+
+                    <div class="charts-row">
+                        <div class="chart-card wide">
+                            <h3>Traffic Overview</h3>
+                            <div class="chart-container vertical" id="activity-chart">
+                                <div
+                                    style="height:100%; display:flex; align-items:center; justify-content:center; color:var(--secondary-text);">
+                                    No activity yet
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-row">
+                        <div class="chart-card">
+                            <h3>Top UTM Sources</h3>
+                            <div class="chart-container horizontal" id="source-chart">
+                                <div
+                                    style="color:var(--secondary-text); font-size:13px; text-align:center; padding-top:20px;">
+                                    No data yet</div>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3>Top Content Types</h3>
+                            <div class="chart-container pie" id="content-chart">
+                                <div style="color:var(--secondary-text); font-size:13px;">No data yet</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History View (Renamed from tab-dashboard) -->
+            <div id="view-history" class="view-section">
+                <div class="controls-bar">
+                    <input type="text" id="search-input" placeholder="Search links, campaigns, sources...">
+                    <select id="sort-select">
+                        <option value="newest">Date: Newest to Oldest</option>
+                        <option value="oldest">Date: Oldest to Newest</option>
+                        <option value="az">Title: A-Z</option>
+                        <option value="za">Title: Z-A</option>
+                    </select>
+                    <button id="export-csv-btn" class="primary-btn">Export CSV</button>
+                    <button id="clear-history" class="danger-btn">Clear History</button>
+                </div>
+                <!-- ... existing empty state and table ... -->
+                <div class="empty-state" id="empty-state" style="display: none;">
+                    <div class="icon" style="font-size: 48px;">📜</div>
+                    <h3 style="font-size: 24px; margin-bottom: 10px;">No History Yet</h3>
+                    <p style="font-size: 16px; max-width: 600px; margin: 0 auto; line-height: 1.5;">Links you generate
+                        with UTM parameters, shortened with TinyURL and QR codes will appear here.</p>
+                </div>
+
+                <div class="table-container">
+                    <table id="history-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Page / Link</th>
+                                <th>Source</th>
+                                <th>Medium</th>
+                                <th>Campaign</th>
+                                <th>Term</th>
+                                <th>Content</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-body">
+                            <!-- Rows injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Presets View -->
+            <div id="view-presets" class="view-section" style="display: none;">
+                <!-- ... Content from tab-presets ... -->
+                <div class="preset-creation-block">
+                    <h2>Manage Presets</h2>
+                    <p class="intro">Add new presets here or manage existing ones. These will appear in your extension
+                        dropdown.</p>
+
+                    <div class="preset-form">
+                        <div class="input-group" style="flex: 2;">
+                            <input type="text" id="p-name" class="inline-input floating-input" placeholder=" ">
+                            <label for="p-name" class="floating-label">Preset Name</label>
+                        </div>
+                        <div class="input-group" style="flex: 1;">
+                            <input type="text" id="p-source" class="inline-input floating-input" placeholder=" ">
+                            <label for="p-source" class="floating-label">utm_source</label>
+                        </div>
+                        <div class="input-group" style="flex: 1;">
+                            <input type="text" id="p-medium" class="inline-input floating-input" placeholder=" ">
+                            <label for="p-medium" class="floating-label">utm_medium</label>
+                        </div>
+                        <div class="input-group" style="flex: 1;">
+                            <input type="text" id="p-campaign" class="inline-input floating-input" placeholder=" ">
+                            <label for="p-campaign" class="floating-label">utm_campaign</label>
+                        </div>
+                        <div class="input-group" style="flex: 1;">
+                            <input type="text" id="p-id" class="inline-input floating-input" placeholder=" ">
+                            <label for="p-id" class="floating-label">utm_id</label>
+                        </div>
+                        <div class="input-group" style="flex: 1;">
+                            <input type="text" id="p-term" class="inline-input floating-input" placeholder=" ">
+                            <label for="p-term" class="floating-label">utm_term</label>
+                        </div>
+                        <div class="input-group" style="flex: 1;">
+                            <input type="text" id="p-content" class="inline-input floating-input" placeholder=" ">
+                            <label for="p-content" class="floating-label">utm_content</label>
+                        </div>
+                        <button id="save-preset-btn" class="primary-btn">Add Preset</button>
+                    </div>
+                </div>
+
+                <div class="empty-state" id="presets-empty-state" style="display: none;">
+                    <div class="icon">🏷️</div>
+                    <h3>No Presets Saved</h3>
+                    <p>Added presets will appear below.</p>
+                </div>
+                <div class="table-container" id="presets-table-container">
+                    <table id="presets-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>utm_source</th>
+                                <th>utm_medium</th>
+                                <th>utm_campaign</th>
+                                <th>utm_id</th>
+                                <th>utm_term</th>
+                                <th>utm_content</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="presets-body">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- QR Options View -->
+            <div id="view-qr-settings" class="view-section" style="display: none;">
+                <div class="preset-creation-block">
+                    <h2>QR Code Customization</h2>
+                    <p class="intro">Customize how your QR codes look. Change colors and the center logo.</p>
+                    <div class="qr-settings-grid">
+                        <!-- Detection Settings -->
+                        <div class="qr-section">
+                            <h3>Detection</h3>
+                            <div class="toggle-row">
+                                <span style="flex:1;">Enable QR Detection on Websites</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="qr-enabled-toggle">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin-top: 8px;">
+                                When enabled, hovering over a QR code on any website will allow you to copy or visit the
+                                link.
+                            </p>
+                        </div>
+
+                        <!-- Appearance -->
+                        <div class="qr-section">
+                            <h3>Colors</h3>
+                            <div class="color-picker-row">
+                                <label for="qr-color-dark" style="flex: 1;">Foreground (Dots):</label>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <input type="text" id="qr-text-dark" class="start-color" value="#000000"
+                                        style="width: 70px; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace;">
+                                    <input type="color" id="qr-color-dark" value="#000000">
+                                </div>
+                            </div>
+                            <div class="color-picker-row">
+                                <label for="qr-color-light" style="flex: 1;">Background:</label>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <input type="text" id="qr-text-light" class="start-color" value="#ffffff"
+                                        style="width: 70px; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace;">
+                                    <input type="color" id="qr-color-light" value="#ffffff">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Logo -->
+                        <div class="qr-section">
+                            <h3>Center Logo</h3>
+
+                            <div class="toggle-row" style="margin-bottom: 20px;">
+                                <span>No Logo Center</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="qr-no-logo">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+
+                            <div id="logo-upload-container">
+                                <p style="margin-bottom: 10px; font-size: 14px; color: var(--text-secondary);">Upload a
+                                    custom logo (PNG/JPG, max 50KB recommended). Default is Link Booster.</p>
+
+                                <div class="logo-preview-area">
+                                    <img id="qr-logo-preview" src="assets/icons/icon48.png" alt="QR Logo Preview"
+                                        style="width: 48px; height: 48px; object-fit: contain; border: 1px solid #ddd; padding: 2px; border-radius: 4px;">
+                                    <div class="logo-actions">
+                                        <input type="file" id="qr-logo-input" accept="image/png, image/jpeg"
+                                            style="display: none;">
+                                        <button id="upload-logo-btn" class="secondary-btn small-btn">Upload New</button>
+                                        <button id="reset-logo-btn" class="danger-btn small-btn"
+                                            style="background: none; color: #ff7675; border: 1px solid #ff7675;">Reset
+                                            to Default</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Live Preview -->
+                        <div class="qr-section">
+                            <h3>Preview</h3>
+                            <div id="qr-preview-container"
+                                style="display: flex; justify-content: center; align-items: center; padding: 20px; background: #f9f9f9; border-radius: 8px;">
+                                <!-- QR Code will be rendered here by JS -->
+                                <div id="qr-settings-preview"></div>
+                                <!-- This is just a placeholder, JS will handle real rendering -->
+                            </div>
+                            <button id="save-qr-settings" class="primary-btn"
+                                style="margin-top: 20px; width: 100%;">Save Design</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Learn View -->
+            <div id="view-learn" class="view-section" style="display: none;">
+
+                <h2 style="margin-top:0; margin-bottom:16px;">Mastering UTM Parameters</h2>
+                <div style="max-width: 800px; margin-bottom: 40px;">
+                    <p class="intro" style="margin-bottom: 16px;">
+                        <strong>UTM (Urchin Tracking Module)</strong> parameters are tags added to the end of a URL.
+                        When someone clicks a link with these tags, they are sent back to your analytics platform (like
+                        Google Analytics), giving you precise data on where your traffic is coming from.
+                    </p>
+                    <p style="color:var(--secondary-text); font-size:14px;">
+                        Using UTMs allows you to answer questions like: "Which marketing email drove the most sales?" or
+                        "Is my LinkedIn strategy working better than Facebook?"
+                    </p>
+                </div>
+
+                <h3 style="margin-bottom: 20px; color:var(--header-text);">anatomy of a link</h3>
+                <div class="code-block"
+                    style="margin-bottom: 40px; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 16px;">
+                    <span style="color:var(--secondary-text)">https://example.com/page?</span><span
+                        style="color:#e056fd">utm_source=google</span><span
+                        style="color:var(--secondary-text)">&</span><span
+                        style="color:#f0932b">utm_medium=cpc</span><span
+                        style="color:var(--secondary-text)">&</span><span
+                        style="color:#25D6D7">utm_campaign=summer_sale</span>
+                </div>
+
+                <h3 style="margin-bottom: 20px; color:var(--header-text);">The 5 Parameters</h3>
+                <div class="guide-grid" style="margin-bottom: 40px;">
+                    <div class="guide-card">
+                        <h3>🏷️ Source (utm_source)</h3>
+                        <p><strong>Required.</strong> The origin of your traffic.</p>
+                        <p class="example">Ex: <code>google</code>, <code>newsletter</code>, <code>linkedin</code></p>
+                    </div>
+                    <div class="guide-card">
+                        <h3>📡 Medium (utm_medium)</h3>
+                        <p><strong>Required.</strong> The marketing medium.</p>
+                        <p class="example">Ex: <code>cpc</code>, <code>email</code>, <code>social</code>,
+                            <code>referral</code>
+                        </p>
+                    </div>
+                    <div class="guide-card">
+                        <h3>📣 Campaign (utm_campaign)</h3>
+                        <p><strong>Required.</strong> The specific campaign name.</p>
+                        <p class="example">Ex: <code>summer_sale</code>, <code>onboarding_v2</code></p>
+                    </div>
+                    <div class="guide-card">
+                        <h3>🔤 Term (utm_term)</h3>
+                        <p>Optional. Used for paid search keywords.</p>
+                        <p class="example">Ex: <code>running+shoes</code>, <code>marketing+software</code></p>
+                    </div>
+                    <div class="guide-card">
+                        <h3>📝 Content (utm_content)</h3>
+                        <p>Optional. Differentiates similar content or links.</p>
+                        <p class="example">Ex: <code>logo_link</code>, <code>text_link</code>, <code>cta_button</code>
+                        </p>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px;">
+                    <div>
+                        <h3 style="margin-bottom: 16px; color:var(--header-text);">✅ Best Practices</h3>
+                        <ul class="tips-list"
+                            style="background: none; padding: 0; list-style-position: inside; color: var(--text-color);">
+                            <li style="margin-bottom: 12px;"><strong>Lowercase Only:</strong> GA is case sensitive.
+                                <code>Email</code> and <code>email</code> show as two different mediums. Always use
+                                lowercase.
+                            </li>
+                            <li style="margin-bottom: 12px;"><strong>Use Dashes/Underscores:</strong> Avoid spaces. Link
+                                Booster handles this, but aiming for <code>summer_sale</code> is safer than
+                                <code>summer sale</code>.
+                            </li>
+                            <li style="margin-bottom: 12px;"><strong>Be Consistent:</strong> Create a naming convention
+                                (e.g., always use <code>facebook</code> not <code>fb</code>) and stick to it.</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 style="margin-bottom: 16px; color:var(--header-text);">❌ Common Mistakes</h3>
+                        <ul class="tips-list"
+                            style="background: none; padding: 0; list-style-position: inside; color: var(--text-color);">
+                            <li style="margin-bottom: 12px;"><strong>Internal Linking:</strong> NEVER use UTMs on links
+                                between pages of your own website. It restarts the session and messes up data.</li>
+                            <li style="margin-bottom: 12px;"><strong>PII Data:</strong> Never put names, emails, or
+                                phone numbers in UTM parameters. It violates privacy policies of tools like Google
+                                Analytics.</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Privacy View -->
+            <div id="view-privacy" class="view-section" style="display: none;">
+                <h2 style="margin-top:0; margin-bottom:16px;">Privacy Policy</h2>
+                <div class="privacy-content" style="max-width: 800px; line-height: 1.6; color: var(--text-color);">
+                    <p class="last-updated" style="color:var(--secondary-text); font-style:italic; margin-bottom:24px;">
+                        Last Updated: January 10, 2026</p>
+
+                    <p>Link Booster ("we", "our", or "us") respects your privacy. This Privacy Policy describes how we
+                        handle your data when you use the Link Booster Chrome Extension.</p>
+
+                    <h3 style="margin-top:24px; margin-bottom:12px; font-size:18px; color:var(--header-text);">1. Data
+                        Collection</h3>
+                    <p><strong>We do not collect, store, or transmit any personal data to our own servers.</strong></p>
+                    <p>All data generated by the extension (such as your link history, presets, and settings) is stored
+                        locally on your device using Chrome's <code>storage.local</code> API. This data never leaves
+                        your browser unless you explicitly choose to share it.</p>
+
+                    <h3 style="margin-top:24px; margin-bottom:12px; font-size:18px; color:var(--header-text);">2.
+                        Third-Party Services</h3>
+                    <p>To provide specific features, we interact with the following third-party services:</p>
+                    <ul style="margin-bottom:16px; padding-left:20px;">
+                        <li><strong>TinyURL:</strong> When you use the "Shorten Link" feature, the URL you wish to
+                            shorten is sent to the TinyURL API (tinyurl.com). This is governed by <a
+                                href="https://tinyurl.com/privacy" target="_blank"
+                                style="color:var(--primary-color);">TinyURL's Privacy Policy</a>.</li>
+                    </ul>
+
+                    <h3 style="margin-top:24px; margin-bottom:12px; font-size:18px; color:var(--header-text);">3.
+                        Permissions</h3>
+                    <p>The extension requests the following permissions for functionality only:</p>
+                    <ul style="margin-bottom:16px; padding-left:20px;">
+                        <li><strong>contextMenus:</strong> To allow you to right-click links and modify them.</li>
+                        <li><strong>scripting & activeTab:</strong> To display the QR code overlay and Toast
+                            notifications on the current page.</li>
+                        <li><strong>storage:</strong> To save your preferences and local history.</li>
+                    </ul>
+
+                    <h3 style="margin-top:24px; margin-bottom:12px; font-size:18px; color:var(--header-text);">4.
+                        Changes to This Policy</h3>
+                    <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting
+                        the new Privacy Policy on this page.</p>
+
+                    <h3 style="margin-top:24px; margin-bottom:12px; font-size:18px; color:var(--header-text);">5.
+                        Contact Us</h3>
+                    <p>If you have any questions about this Privacy Policy, please contact us via the Chrome Web Store
+                        support tab.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="assets/qrcode.min.js"></script>
+    <script src="assets/supabase.js"></script>
+    <script src="options.js"></script>
+</body>
+
+</html>

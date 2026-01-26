@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Link Booster</title>
+    <link rel="stylesheet" href="onboarding.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="background-globes">
+        <div class="globe g1"></div>
+        <div class="globe g2"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <img src="assets/link-booster-logo-dark.png" alt="Link Booster" class="logo">
+        </header>
+
+        <main class="slider-container">
+            <!-- Slide 1: Welcome -->
+            <section class="slide active" id="slide-1">
+                <div class="content">
+                    <h1>Boost Your Links</h1>
+                    <p class="subtitle">The ultimate tool for <span class="highlight">clean and shareable</span> URLs.
+                    </p>
+                    <div class="hero-visual">
+                        <!-- Toggle Animation -->
+                        <div class="demo-toggle-row">
+                            <span class="demo-label">Clean of Tracking</span>
+                            <div class="demo-toggle auto-loop">
+                                <div class="demo-slider"></div>
+                            </div>
+                        </div>
+
+                        <!-- URL Card -->
+                        <div class="card glass">
+                            <span class="url-part domain">example.com/</span>
+                            <span class="url-part path">cool-product</span>
+                            <span class="url-part junk-animated">?utm_content=junk...</span>
+
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 2: Smart Copy -->
+            <section class="slide" id="slide-2">
+                <div class="content">
+                    <h1>Smart Decoding</h1>
+                    <p class="subtitle">Copy links that actually look good <span class="gray-text">in</span> <span
+                            id="lang-desc">Hebrew</span></p>
+
+                    <div class="hero-visual">
+                        <!-- Toggle Animation -->
+                        <div class="demo-toggle-row">
+                            <span class="demo-label">Decode URL</span>
+                            <div class="demo-toggle">
+                                <div class="demo-slider"></div>
+                            </div>
+                        </div>
+
+                        <!-- URL Card -->
+                        <div class="card glass">
+                            <span class="url-part domain">https://example.com/</span>
+                            <div class="decoding-container">
+                                <span class="url-part encoded"
+                                    id="demo-encoded">%D7%A9%D7%9C%D7%95%D7%9D%20%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9%D7%99%D7%9D%20%D7%99%D7%A7%D7%A8%D7%99%D7%9D%20%D7%96%D7%94%D7%95%20%D7%98%D7%A7%D7%A1%D7%98</span>
+                                <span class="url-part decoded" id="demo-decoded">שלום משתמשים יקרים זהו טקסט</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="feature-grid" style="margin-top: 20px;">
+                        <div class="feature-item">
+                            <span class="icon">🌍</span>
+                            <span>Auto-detects<br>Language</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="icon">📋</span>
+                            <span>3 Ways to<br>Copy</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 3: Clean & Shorten -->
+            <section class="slide" id="slide-3">
+                <div class="content">
+                    <h1>Shorten Links Automatically</h1>
+                    <p>Hide tracking parameters and long and ugly links in a clean and short tinyurl with <span
+                            class="highlight">two clicks</span>.</p>
+                    <div class="visual-stack">
+                        <div class="stack-item item-1">
+                            <span class="check-box"></span>
+                            <span>Hide UTMs</span>
+                        </div>
+                        <div class="stack-item item-2">
+                            <span class="check-box"></span>
+                            <span>Shorten to TinyURL</span>
+                        </div>
+                        <div class="stack-item item-3">
+                            <span class="check-box"></span>
+                            <span>Saved to History</span>
+                        </div>
+                        <div class="stack-item item-4">
+                            <span class="check-box"></span>
+                            <span>Copy to Clipboard</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 4: QR Codes -->
+            <section class="slide" id="slide-4">
+                <div class="content">
+                    <h1>Instant QR Codes</h1>
+                    <p>Generate QR codes instantly. Download as <span class="highlight">PNG or SVG</span> and save to
+                        your link history.</p>
+                    <div class="visual-center">
+                        <div class="qr-mockup">
+                            <!-- CSS Grid Pattern -->
+                            <div class="qr-dots"></div>
+                        </div>
+
+                        <div class="qr-badges">
+                            <div class="q-badge">PNG</div>
+                            <div class="q-badge">SVG</div>
+                        </div>
+
+                        <div class="history-pill">
+                            <span>🕒</span> Saved to History
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 5: UTMs -->
+            <section class="slide" id="slide-5">
+                <div class="content">
+                    <h1>UTM Builder & Presets</h1>
+                    <p>Easily create campaign links and save your favorite <span class="highlight">UTM presets</span>.
+                    </p>
+                    <div class="visual-center">
+                        <div class="preset-card">
+                            <div class="preset-header">
+                                <span>⭐ Newsletter Preset</span>
+                            </div>
+                            <div class="preset-tags">
+                                <span class="p-tag">source=fb</span>
+                                <span class="p-tag">medium=social</span>
+                            </div>
+                        </div>
+
+                        <div class="history-pill" style="margin-top: 20px;">
+                            <span>🕒</span> Yes yes, these links will also save to your History
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 6: Master Shortcut -->
+            <section class="slide" id="slide-6">
+                <div class="content">
+                    <h1>Take a Shortcut</h1>
+                    <p>Open any page and press this to copy instantly with all of your predetermined settings.</p>
+
+                    <div class="shortcut-display">
+                        <kbd id="mod-key-1">Alt</kbd> + <kbd id="shortcut-key">C</kbd>
+                    </div>
+                    <p class="small-hint">Or go to settings and define your own shortcut</p>
+                </div>
+            </section>
+        </main>
+
+        <div class="controls">
+            <div class="indicators">
+                <span class="dot active" data-index="0"></span>
+                <span class="dot" data-index="1"></span>
+                <span class="dot" data-index="2"></span>
+                <span class="dot" data-index="3"></span>
+                <span class="dot" data-index="4"></span>
+                <span class="dot" data-index="5"></span>
+            </div>
+            <button id="next-btn" class="btn-primary">Next</button>
+        </div>
+    </div>
+
+    <script src="onboarding.js"></script>
+</body>
+
+</html>
