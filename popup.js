@@ -271,13 +271,54 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // Initialize Supabase
+    const SUPABASE_URL = 'https://werjvrzdbpbyasftmlkl.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlcmp2cnpkYnBieWFzZnRtbGtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2MjU1ODcsImV4cCI6MjA4NDIwMTU4N30.FhAJ30gpTX81uv90weWA6MJJxC1DpVYcZv6YAMI9Lkk';
+    const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
     // Helper: Add to History
     const addToHistory = (record) => {
-        chrome.storage.local.get(['linkHistory'], (result) => {
+        // 1. Local Storage (Always)
+        chrome.storage.local.get(['linkHistory', 'authSession'], async (result) => {
             const history = result.linkHistory || [];
             history.push(record);
             if (history.length > 50) history.shift();
             chrome.storage.local.set({ linkHistory: history });
+
+            // 2. Cloud Sync (Conditional)
+            // User requirement: "links that have UTM/shortened links/QR codes should be stored"
+            const isTracked = (record.utm && Object.keys(record.utm).length > 0) || record.shortened || record.type === 'qr';
+
+            if (result.authSession && isTracked && supabaseClient) {
+                try {
+                    const { user } = result.authSession;
+                    if (!user) return;
+
+                    const payload = {
+                        user_id: user.id,
+                        original_url: record.originalUrl,
+                        final_url: record.finalUrl,
+                        utm_source: record.utm?.source || null,
+                        utm_medium: record.utm?.medium || null,
+                        utm_campaign: record.utm?.campaign || null,
+                        is_shortened: !!record.shortened,
+                        is_qr: record.type === 'qr',
+                        created_at: new Date(record.timestamp).toISOString()
+                    };
+
+                    const { error } = await supabaseClient
+                        .from('links')
+                        .insert(payload);
+
+                    if (error) {
+                        console.error('Failed to sync link to DB:', error);
+                    } else {
+                        console.log('Link synced to cloud');
+                    }
+                } catch (e) {
+                    console.error('Exception syncing link:', e);
+                }
+            }
         });
     };
 
@@ -466,6 +507,50 @@ document.addEventListener('DOMContentLoaded', () => {
     const qrcodeContainer = document.getElementById('qrcode');
     const qrUrl = document.getElementById('qr-url');
 
+    // Helper: Add padding to logo (Replicated from options.js)
+    const createPaddedLogo = (src, bgColor, frameColor, paddingPc = 0.15) => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const size = 512;
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = bgColor;
+                ctx.fillRect(0, 0, size, size);
+
+                // Draw Frame if color provided (2px approx relative to final size ~ 18px here)
+                if (frameColor) {
+                    const lineWidth = 18;
+                    ctx.strokeStyle = frameColor;
+                    ctx.lineWidth = lineWidth;
+                    // Stroke inside the box
+                    ctx.strokeRect(lineWidth / 2, lineWidth / 2, size - lineWidth, size - lineWidth);
+                }
+
+                const innerSize = size * (1 - paddingPc * 2);
+                let w = img.width;
+                let h = img.height;
+                if (w > h) {
+                    h = h * (innerSize / w);
+                    w = innerSize;
+                } else {
+                    w = w * (innerSize / h);
+                    h = innerSize;
+                }
+                const x = (size - w) / 2;
+                const y = (size - h) / 2;
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(img, x, y, w, h);
+                resolve(canvas.toDataURL('image/png'));
+            };
+            img.onerror = () => resolve(src);
+            img.src = src;
+        });
+    };
+
     qrBtn.addEventListener('click', async () => {
         statusMsg.textContent = "Generating...";
         const result = await getFinalLink();
@@ -482,37 +567,35 @@ document.addEventListener('DOMContentLoaded', () => {
             const fg = set.foreground || "#000000";
             const bg = set.background || "#ffffff";
 
-            qr = new QRCode(qrcodeContainer, {
+            const options = {
                 text: qrText,
                 width: 180,
                 height: 180,
                 colorDark: fg,
                 colorLight: bg,
-                correctLevel: QRCode.CorrectLevel.L
-            });
+                correctLevel: QRCode.CorrectLevel.H,
+                quietZone: 0,
+                logoBackgroundTransparent: false,
+                logoBackgroundColor: set.logoBackgroundColor || bg // Use stored logo bg
+            };
 
-            // Update Logo Overlay
-            const qrLogo = document.querySelector('.qr-logo');
-            if (qrLogo) {
-                if (set.noLogo) {
-                    qrLogo.style.display = 'none';
-                } else {
-                    qrLogo.style.display = 'block';
-                    if (set.logoDataUrl) {
-                        qrLogo.src = set.logoDataUrl;
-                    } else {
-                        qrLogo.src = "assets/icons/icon48.png";
-                    }
-                    // Apply styles dynamically if needed, but CSS handles centering.
-                    // The border color in CSS determines the box look. 
-                    // To match options page perfectly we might want to change bg of logo to match QR bg?
-                    qrLogo.style.backgroundColor = bg;
-                }
+            if (!set.noLogo) {
+                const rawLogo = set.logoDataUrl || "assets/icons/icon48.png";
+                // Add padding and frame
+                const paddedLogo = await createPaddedLogo(rawLogo,
+                    set.logoBackgroundColor || bg,
+                    set.logoFrameColor
+                );
+                options.logo = paddedLogo;
+                options.logoWidth = 48; // Slightly bigger (26% of 180)
+                options.logoHeight = 48;
             }
 
-            // We need to update the <img> tag if qrcode.js generated one for fallback
-            // But since we are not modifying the canvas anymore, standard generation is enough.
-            // We just ensure the logo overlay is visible via CSS.
+            qr = new QRCode(qrcodeContainer, options);
+
+            // Hide old manual overlay logo if exists
+            const qrLogo = document.querySelector('.qr-logo');
+            if (qrLogo) qrLogo.style.display = 'none';
 
             qrUrl.textContent = result.finalUrl; // Keep display text as user preference (e.g. decoded)
             qrOverlay.style.display = 'flex';
@@ -728,123 +811,73 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('download-png').addEventListener('click', () => {
         const canvas = qrcodeContainer.querySelector('canvas');
         if (!canvas) return;
-
-        const set = window.qrSettings || {};
-        const bg = set.background || "#ffffff";
-
-        // Create a new canvas to composite QR + Logo for download
-        const finalCanvas = document.createElement('canvas');
-        finalCanvas.width = canvas.width;
-        finalCanvas.height = canvas.height;
-        const ctx = finalCanvas.getContext('2d');
-
-        // Draw QR
-        ctx.fillStyle = bg;
-        ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
-        ctx.drawImage(canvas, 0, 0);
-
-        const finishPng = () => {
-            downloadImage(finalCanvas.toDataURL("image/png"), "qr-code.png");
-        };
-
-        // Draw Logo
-        if (!set.noLogo) {
-            const logoImg = new Image();
-            logoImg.onload = () => {
-                const logoSize = 48; // Standard size from CSS
-                const x = (finalCanvas.width - logoSize) / 2;
-                const y = (finalCanvas.height - logoSize) / 2;
-
-                // Draw bg for logo
-                ctx.fillStyle = bg;
-                // Match CSS border radius look roughly (rect)
-                ctx.fillRect(x, y, logoSize, logoSize);
-
-                // Draw cyan border (Stroke)
-                ctx.strokeStyle = "#25D6D7";
-                ctx.lineWidth = 3;
-                ctx.strokeRect(x, y, logoSize, logoSize);
-
-                // Draw Logo Image
-                const padding = 6;
-                ctx.drawImage(logoImg, x + padding, y + padding, logoSize - (padding * 2), logoSize - (padding * 2));
-
-                finishPng();
-            };
-            logoImg.onerror = finishPng;
-            logoImg.src = set.logoDataUrl || "assets/icons/icon48.png";
-        } else {
-            finishPng();
-        }
+        downloadImage(canvas.toDataURL("image/png"), "qr-code.png");
     });
 
+
     // Download SVG
-    document.getElementById('download-svg').addEventListener('click', () => {
-        if (!qr || !qr._oQRCode || !qr._oQRCode.modules) {
-            alert("Could not generate SVG");
-            return;
-        }
+    document.getElementById('download-svg').addEventListener('click', async () => {
+        const resultUrl = qrUrl.textContent; // Using textContent as the source of truth
+        if (!resultUrl) return;
+
+        // Create hidden container
+        const container = document.createElement('div');
+        container.style.position = 'fixed';
+        container.style.opacity = '0';
+        container.style.top = '-9999px';
+        document.body.appendChild(container);
 
         const set = window.qrSettings || {};
         const fg = set.foreground || "#000000";
         const bg = set.background || "#ffffff";
+        const qrText = new URL(resultUrl).toString();
 
-        const modules = qr._oQRCode.modules;
-        const modCount = qr._oQRCode.moduleCount;
-        const size = 180;
-        const tileSize = size / modCount;
-
-        let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">`;
-        svgContent += `<rect width="100%" height="100%" fill="${bg}"/>`;
-
-        for (let r = 0; r < modCount; r++) {
-            for (let c = 0; c < modCount; c++) {
-                if (modules[r][c]) {
-                    svgContent += `<rect x="${c * tileSize}" y="${r * tileSize}" width="${tileSize}" height="${tileSize}" fill="${fg}"/>`;
+        const options = {
+            text: qrText,
+            width: 300,
+            height: 300,
+            colorDark: fg,
+            colorLight: bg,
+            correctLevel: QRCode.CorrectLevel.H,
+            quietZone: 0,
+            logoBackgroundTransparent: false,
+            logoBackgroundColor: bg,
+            drawer: 'svg',
+            onRenderingEnd: function (qrOptions, dataURL) {
+                const svg = container.querySelector('svg');
+                if (svg) {
+                    const serializer = new XMLSerializer();
+                    let source = serializer.serializeToString(svg);
+                    if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+                        source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+                    }
+                    if (!source.match(/^<svg[^>]+xmlns:xlink="http\:\/\/www\.w3\.org\/1999\/xlink"/)) {
+                        source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+                    }
+                    const blob = new Blob([source], { type: "image/svg+xml;charset=utf-8" });
+                    const url = URL.createObjectURL(blob);
+                    downloadImage(url, "qr-code.svg");
                 }
+                setTimeout(() => {
+                    if (container.parentNode) document.body.removeChild(container);
+                }, 100);
             }
-        }
-
-        const finishSvg = (logoB64) => {
-            // Add Logo overlay (Centered)
-            if (logoB64 && !set.noLogo) {
-                const logoSize = 48;
-                const xy = (size - logoSize) / 2;
-
-                // White Box background
-                svgContent += `<rect x="${xy}" y="${xy}" width="${logoSize}" height="${logoSize}" fill="${bg}" stroke="#25D6D7" stroke-width="3" rx="10" />`;
-
-                const padding = 6;
-                const innerSize = logoSize - (padding * 2);
-                const innerXY = xy + padding;
-
-                svgContent += `<image href="${logoB64}" x="${innerXY}" y="${innerXY}" height="${innerSize}" width="${innerSize}"/>`;
-            }
-
-            svgContent += `</svg>`;
-            const blobSvg = new Blob([svgContent], { type: "image/svg+xml;charset=utf-8" });
-            const url = URL.createObjectURL(blobSvg);
-            downloadImage(url, "qr-code.svg");
         };
 
         if (!set.noLogo) {
-            const logoSrc = set.logoDataUrl || "assets/icons/icon48.png";
-            if (logoSrc.startsWith('data:')) {
-                finishSvg(logoSrc);
-            } else {
-                fetch(logoSrc)
-                    .then(res => res.blob())
-                    .then(blob => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => finishSvg(reader.result);
-                        reader.readAsDataURL(blob);
-                    })
-                    .catch(() => finishSvg(null));
-            }
-        } else {
-            finishSvg(null);
+            const rawLogo = set.logoDataUrl || "assets/icons/icon48.png";
+            const paddedLogo = await createPaddedLogo(rawLogo,
+                set.logoBackgroundColor || bg,
+                set.logoFrameColor
+            );
+            options.logo = paddedLogo;
+            options.logoWidth = 80;
+            options.logoHeight = 80;
         }
+
+        new QRCode(container, options);
     });
+
     // --- Restore Helpers ---
 
     const showStatus = (msg, type = 'normal') => {

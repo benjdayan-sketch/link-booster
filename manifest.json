@@ -1,13 +1,14 @@
 {
   "manifest_version": 3,
   "name": "Link Booster",
-  "version": "2.0",
+  "version": "2.2",
   "description": "Boost your links! Clean tracking params, auto-detect language for social sharing, shorten URLs, and generate QR codes.",
   "permissions": [
     "contextMenus",
     "scripting",
     "activeTab",
-    "storage"
+    "storage",
+    "tabs"
   ],
   "host_permissions": [
     "https://tinyurl.com/*",

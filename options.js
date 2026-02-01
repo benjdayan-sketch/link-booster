@@ -78,6 +78,11 @@ document.addEventListener('DOMContentLoaded', () => {
             v.style.display = v.id === `view-${viewName}` ? 'block' : 'none';
         });
 
+        // Load data for specific views
+        if (viewName === 'analytics') {
+            loadAnalytics();
+        }
+
         // Update URL Hash without scrolling
         if (history.replaceState) {
             history.replaceState(null, null, `#${viewName}`);
@@ -95,12 +100,31 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Handle Deep Linking on Load
-    const initialView = window.location.hash.replace('#', '') || 'history';
+    const hash = window.location.hash;
+    let initialView = hash.replace('#', '') || 'overview';
+
+    // Detect Supabase Auth Redirects (access_token, error_description, etc.)
+    if (hash.includes('access_token=') || hash.includes('refresh_token=') || hash.includes('error_description=')) {
+        console.log("Supabase Auth Redirect detected");
+        initialView = 'tracking';
+        // We do NOT clear the hash here immediately, because Supabase client needs to read it.
+        // The Supabase client initialized in initAuthLogic will pick this up.
+    }
+
     if (document.getElementById(`view-${initialView}`)) {
         switchView(initialView);
     } else {
-        switchView('history');
+        switchView('overview');
     }
+
+    // Overview Deep Links Handling
+    document.querySelectorAll('.feature-action-link[data-goto]').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetView = link.dataset.goto;
+            switchView(targetView);
+        });
+    });
 
     // Handle Back/Forward Browser Buttons
     window.addEventListener('hashchange', () => {
@@ -546,6 +570,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const qrColorLight = document.getElementById('qr-color-light');
     const qrTextDark = document.getElementById('qr-text-dark');
     const qrTextLight = document.getElementById('qr-text-light');
+    // New Logo BG inputs
+    const qrLogoBgColor = document.getElementById('qr-logo-bg-color');
+    const qrTextLogoBg = document.getElementById('qr-text-logo-bg');
+    // New Logo Frame inputs
+    const qrLogoFrameColor = document.getElementById('qr-logo-frame-color');
+    const qrTextLogoFrame = document.getElementById('qr-text-logo-frame');
 
     const qrNoLogo = document.getElementById('qr-no-logo');
     const qrLogoPreview = document.getElementById('qr-logo-preview');
@@ -558,6 +588,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentQrSettings = {
         foreground: "#000000",
         background: "#ffffff",
+        logoBackgroundColor: "#ffffff", // Default match bg
+        logoFrameColor: "#25D6D7", // Default cyan
         noLogo: false,
         logoDataUrl: null // null means default
     };
@@ -575,6 +607,24 @@ document.addEventListener('DOMContentLoaded', () => {
             if (qrColorLight) qrColorLight.value = currentQrSettings.background;
             if (qrTextLight) qrTextLight.value = currentQrSettings.background;
 
+            if (qrLogoBgColor && currentQrSettings.logoBackgroundColor) {
+                qrLogoBgColor.value = currentQrSettings.logoBackgroundColor;
+                if (qrTextLogoBg) qrTextLogoBg.value = currentQrSettings.logoBackgroundColor;
+            } else {
+                // Fallback if undefined in storage
+                if (qrLogoBgColor) qrLogoBgColor.value = currentQrSettings.background;
+                if (qrTextLogoBg) qrTextLogoBg.value = currentQrSettings.background;
+            }
+
+            if (qrLogoFrameColor && currentQrSettings.logoFrameColor) {
+                qrLogoFrameColor.value = currentQrSettings.logoFrameColor;
+                if (qrTextLogoFrame) qrTextLogoFrame.value = currentQrSettings.logoFrameColor;
+            } else {
+                // Default to cyan if not set
+                if (qrLogoFrameColor) qrLogoFrameColor.value = "#25D6D7";
+                if (qrTextLogoFrame) qrTextLogoFrame.value = "#25D6D7";
+            }
+
             if (qrNoLogo) qrNoLogo.checked = currentQrSettings.noLogo;
 
             if (currentQrSettings.logoDataUrl) {
@@ -587,42 +637,122 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    const renderQrPreview = () => {
+    // Helper: Add padding to logo
+    const createPaddedLogo = (src, bgColor, frameColor, paddingPc = 0.15) => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                // Use a decent resolution
+                const size = 512;
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+
+                // Draw background
+                ctx.fillStyle = bgColor;
+                ctx.fillRect(0, 0, size, size);
+
+                // Draw Frame if color provided (2px approx relative to final 55px ~ 18px here)
+                if (frameColor) {
+                    const lineWidth = 18;
+                    ctx.strokeStyle = frameColor;
+                    ctx.lineWidth = lineWidth;
+                    // Stroke inside the box
+                    ctx.strokeRect(lineWidth / 2, lineWidth / 2, size - lineWidth, size - lineWidth);
+                }
+
+                // Calculate logo dimensions maintaining aspect ratio
+                const innerSize = size * (1 - paddingPc * 2);
+                let w = img.width;
+                let h = img.height;
+
+                if (w > h) {
+                    h = h * (innerSize / w);
+                    w = innerSize;
+                } else {
+                    w = w * (innerSize / h);
+                    h = innerSize;
+                }
+
+                // Center
+                const x = (size - w) / 2;
+                const y = (size - h) / 2;
+
+                // High quality scaling
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+
+                ctx.drawImage(img, x, y, w, h);
+                resolve(canvas.toDataURL('image/png'));
+            };
+            img.onerror = () => resolve(src);
+            img.src = src;
+        });
+    };
+
+    const renderQrPreview = async () => {
         if (!qrSettingsPreview) return;
         qrSettingsPreview.innerHTML = "";
 
-        // Use a dummy link for preview
         const dummyLink = "https://example.com";
-        const qr = new QRCode(qrSettingsPreview, {
+
+        const options = {
             text: dummyLink,
-            width: 150,
-            height: 150,
+            width: 200,
+            height: 200,
             colorDark: currentQrSettings.foreground,
             colorLight: currentQrSettings.background,
-            correctLevel: QRCode.CorrectLevel.L
-        });
+            correctLevel: QRCode.CorrectLevel.H,
+            quietZone: 0,
+            logoBackgroundTransparent: false, // We bake the bg into the image now for better control
+            logoBackgroundColor: currentQrSettings.logoBackgroundColor || currentQrSettings.background // Just in case
+        };
 
-        // Overlay Logo
         if (!currentQrSettings.noLogo) {
-            const logoSrc = currentQrSettings.logoDataUrl || "assets/icons/icon48.png";
-            const img = document.createElement('img');
-            img.src = logoSrc;
-            img.style.position = 'absolute';
-            img.style.top = '50%';
-            img.style.left = '50%';
-            img.style.transform = 'translate(-50%, -50%)';
-            img.style.width = '40px';
-            img.style.height = '40px';
-            img.style.background = currentQrSettings.background;
-            img.style.border = '2px solid #25D6D7';
-            img.style.borderRadius = '4px';
-            img.style.padding = '2px';
+            const rawLogo = currentQrSettings.logoDataUrl || "assets/icons/icon48.png";
+            // Use specific logo background color for padding and frame
+            const paddedLogo = await createPaddedLogo(rawLogo,
+                currentQrSettings.logoBackgroundColor || currentQrSettings.background,
+                currentQrSettings.logoFrameColor // Frame color
+            );
 
-            // Wrapper relative
-            qrSettingsPreview.style.position = 'relative';
-            qrSettingsPreview.appendChild(img);
+            options.logo = paddedLogo;
+            options.logoWidth = 55; // Slightly bigger (was ~44)
+            options.logoHeight = 55;
         }
+
+        new QRCode(qrSettingsPreview, options);
     };
+
+    // Logo Frame Events
+    if (qrLogoFrameColor) {
+        qrLogoFrameColor.addEventListener('input', (e) => {
+            currentQrSettings.logoFrameColor = e.target.value;
+            if (qrTextLogoFrame) qrTextLogoFrame.value = e.target.value;
+            renderQrPreview();
+        });
+    }
+    if (qrTextLogoFrame) {
+        qrTextLogoFrame.addEventListener('input', (e) => {
+            let val = e.target.value;
+            if (!val.startsWith('#')) val = '#' + val;
+            if (isValidHex(val)) {
+                currentQrSettings.logoFrameColor = val;
+                if (qrLogoFrameColor) qrLogoFrameColor.value = val;
+                renderQrPreview();
+            }
+        });
+        qrTextLogoFrame.addEventListener('change', (e) => {
+            let val = e.target.value;
+            if (!val.startsWith('#')) val = '#' + val;
+            if (isValidHex(val)) {
+                e.target.value = val;
+            } else {
+                e.target.value = currentQrSettings.logoFrameColor;
+            }
+        });
+    }
 
     if (uploadLogoBtn) {
         uploadLogoBtn.addEventListener('click', () => qrLogoInput.click());
@@ -647,7 +777,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const canvas = document.createElement('canvas');
                     let width = img.width;
                     let height = img.height;
-                    const maxSize = 120; // slightly larger than needed
+                    const maxSize = 512; // Increased for sharpness
 
                     if (width > height) {
                         if (width > maxSize) {
@@ -747,6 +877,36 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Logo Background Events
+    if (qrLogoBgColor) {
+        qrLogoBgColor.addEventListener('input', (e) => {
+            const val = e.target.value;
+            currentQrSettings.logoBackgroundColor = val;
+            if (qrTextLogoBg) qrTextLogoBg.value = val;
+            renderQrPreview();
+        });
+    }
+    if (qrTextLogoBg) {
+        qrTextLogoBg.addEventListener('input', (e) => {
+            let val = e.target.value;
+            if (!val.startsWith('#')) val = '#' + val;
+            if (isValidHex(val)) {
+                currentQrSettings.logoBackgroundColor = val;
+                if (qrLogoBgColor) qrLogoBgColor.value = val;
+                renderQrPreview();
+            }
+        });
+        qrTextLogoBg.addEventListener('change', (e) => {
+            let val = e.target.value;
+            if (!val.startsWith('#')) val = '#' + val;
+            if (isValidHex(val)) {
+                e.target.value = val;
+            } else {
+                e.target.value = currentQrSettings.logoBackgroundColor;
+            }
+        });
+    }
+
     if (qrNoLogo) qrNoLogo.addEventListener('change', (e) => {
         currentQrSettings.noLogo = e.target.checked;
         renderQrPreview();
@@ -770,10 +930,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial Load
     fetchHistory();
     loadAnalytics();
-    initAuthLogic();
+
 
     // Helper: Generate and Download QR
-    function generateAndDownloadQr(url, fmt) {
+    async function generateAndDownloadQr(url, fmt) {
         // Create hidden container
         const container = document.createElement('div');
         container.style.position = 'fixed';
@@ -782,140 +942,64 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(container);
 
         try {
-            // Encode properly
             const qrText = new URL(url).toString();
-
-            // Use current settings (or defaults if not loaded yet)
             const fg = currentQrSettings.foreground || "#000000";
             const bg = currentQrSettings.background || "#ffffff";
 
-            const qr = new QRCode(container, {
+            const options = {
                 text: qrText,
-                width: 180,
-                height: 180,
+                width: 300,
+                height: 300,
                 colorDark: fg,
                 colorLight: bg,
-                correctLevel: QRCode.CorrectLevel.L
-            });
-
-            // Allow rendering time? qrcode.js is synchronous for instantiation but image drawing might take a tick?
-            // Usually synchronous for Canvas.
-
-            if (fmt === 'png') {
-                const canvas = container.querySelector('canvas');
-                if (!canvas) {
-                    alert("Error generating QR");
-                    document.body.removeChild(container);
-                    return;
-                }
-
-                const finalCanvas = document.createElement('canvas');
-                finalCanvas.width = canvas.width;
-                finalCanvas.height = canvas.height;
-                const ctx = finalCanvas.getContext('2d');
-
-                // Bg
-                ctx.fillStyle = bg;
-                ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
-                ctx.drawImage(canvas, 0, 0);
-
-                const downloadFinal = () => {
-                    downloadDataUrl(finalCanvas.toDataURL("image/png"), "qr-code.png");
-                    document.body.removeChild(container);
-                };
-
-                // Add Logo
-                if (!currentQrSettings.noLogo) {
-                    const logoImg = new Image();
-                    logoImg.onload = () => {
-                        const logoSize = 48;
-                        const x = (finalCanvas.width - logoSize) / 2;
-                        const y = (finalCanvas.height - logoSize) / 2;
-
-                        ctx.fillStyle = bg;
-                        ctx.fillRect(x, y, logoSize, logoSize);
-
-                        ctx.strokeStyle = "#25D6D7";
-                        ctx.lineWidth = 3;
-                        ctx.strokeRect(x, y, logoSize, logoSize);
-
-                        const padding = 6;
-                        ctx.drawImage(logoImg, x + padding, y + padding, logoSize - (padding * 2), logoSize - (padding * 2));
-
-                        downloadFinal();
-                    };
-                    logoImg.onerror = () => {
-                        downloadFinal();
-                    };
-                    // Use custom logo if available
-                    logoImg.src = currentQrSettings.logoDataUrl || "assets/icons/icon48.png";
-                } else {
-                    downloadFinal();
-                }
-
-            } else if (fmt === 'svg') {
-                if (!qr || !qr._oQRCode || !qr._oQRCode.modules) {
-                    document.body.removeChild(container);
-                    return;
-                }
-
-                const modules = qr._oQRCode.modules;
-                const modCount = qr._oQRCode.moduleCount;
-                const size = 180;
-                const tileSize = size / modCount;
-
-                let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">`;
-                svgContent += `<rect width="100%" height="100%" fill="${bg}"/>`;
-
-                for (let r = 0; r < modCount; r++) {
-                    for (let c = 0; c < modCount; c++) {
-                        if (modules[r][c]) {
-                            svgContent += `<rect x="${c * tileSize}" y="${r * tileSize}" width="${tileSize}" height="${tileSize}" fill="${fg}"/>`;
+                correctLevel: QRCode.CorrectLevel.H,
+                quietZone: 1, // Slight padding for safety
+                logoBackgroundTransparent: false,
+                logoBackgroundColor: currentQrSettings.logoBackgroundColor || bg, // Use specific logo bg
+                drawer: fmt === 'svg' ? 'svg' : 'canvas',
+                onRenderingEnd: function (qrOptions, dataURL) {
+                    if (fmt === 'svg') {
+                        const svg = container.querySelector('svg');
+                        if (svg) {
+                            const serializer = new XMLSerializer();
+                            let source = serializer.serializeToString(svg);
+                            if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+                                source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+                            }
+                            if (!source.match(/^<svg[^>]+xmlns:xlink="http\:\/\/www\.w3\.org\/1999\/xlink"/)) {
+                                source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+                            }
+                            const blob = new Blob([source], { type: "image/svg+xml;charset=utf-8" });
+                            const url = URL.createObjectURL(blob);
+                            downloadDataUrl(url, "qr-code.svg");
+                        }
+                    } else {
+                        // PNG
+                        const canvas = container.querySelector('canvas');
+                        if (canvas) {
+                            downloadDataUrl(canvas.toDataURL("image/png"), "qr-code.png");
                         }
                     }
+
+                    setTimeout(() => {
+                        if (container.parentNode) document.body.removeChild(container);
+                    }, 100);
                 }
+            };
 
-                const finishSvg = (logoB64) => {
-                    if (logoB64 && !currentQrSettings.noLogo) {
-                        // Logo
-                        const logoSize = 48;
-                        const xy = (size - logoSize) / 2;
-                        svgContent += `<rect x="${xy}" y="${xy}" width="${logoSize}" height="${logoSize}" fill="${bg}" stroke="#25D6D7" stroke-width="3" rx="10" />`;
-
-                        const padding = 6;
-                        const innerSize = logoSize - (padding * 2);
-                        const innerXY = xy + padding;
-                        svgContent += `<image href="${logoB64}" x="${innerXY}" y="${innerXY}" height="${innerSize}" width="${innerSize}"/>`;
-                    }
-
-                    svgContent += `</svg>`;
-                    const blobSvg = new Blob([svgContent], { type: "image/svg+xml;charset=utf-8" });
-                    const url = URL.createObjectURL(blobSvg);
-                    downloadDataUrl(url, "qr-code.svg");
-                    document.body.removeChild(container);
-                };
-
-                if (!currentQrSettings.noLogo) {
-                    const logoSrc = currentQrSettings.logoDataUrl || "assets/icons/icon48.png";
-                    // If it's a data URL, we can use it directly? Yes, image href supports data URI.
-                    // But if it's a path like "assets/...", we need to fetch it to get base64/blob for standalone SVG.
-
-                    if (logoSrc.startsWith('data:')) {
-                        finishSvg(logoSrc);
-                    } else {
-                        fetch(logoSrc)
-                            .then(r => r.blob())
-                            .then(blob => {
-                                const reader = new FileReader();
-                                reader.onloadend = () => finishSvg(reader.result);
-                                reader.readAsDataURL(blob);
-                            })
-                            .catch(() => finishSvg(null));
-                    }
-                } else {
-                    finishSvg(null);
-                }
+            if (!currentQrSettings.noLogo) {
+                const rawLogo = currentQrSettings.logoDataUrl || "assets/icons/icon48.png";
+                // Use specific logo bg color and frame color
+                const paddedLogo = await createPaddedLogo(rawLogo,
+                    currentQrSettings.logoBackgroundColor || bg,
+                    currentQrSettings.logoFrameColor
+                );
+                options.logo = paddedLogo;
+                options.logoWidth = 80; // Bigger for 300px (approx 26%)
+                options.logoHeight = 80;
             }
+
+            new QRCode(container, options);
 
         } catch (e) {
             console.error(e);
@@ -931,224 +1015,14 @@ document.addEventListener('DOMContentLoaded', () => {
         link.click();
         document.body.removeChild(link);
     }
-    function initAuthLogic() {
-        // Initialize Supabase
-        const SUPABASE_URL = 'https://werjvrzdbpbyasftmlkl.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlcmp2cnpkYnBieWFzZnRtbGtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2MjU1ODcsImV4cCI6MjA4NDIwMTU4N30.FhAJ30gpTX81uv90weWA6MJJxC1DpVYcZv6YAMI9Lkk'; // Anon Key
 
-        // Ensure supabase is available
-        const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-        // Check Auth State
-        chrome.storage.local.get(['authUser', 'authSession'], (res) => {
-            if (res.authUser && res.authSession) {
-                showTrackingDashboard(res.authUser);
-            } else {
-                showAuthForm();
-            }
-        });
-
-        // Auth Tabs
-        const loginTab = document.getElementById('tab-login');
-        const regTab = document.getElementById('tab-register');
-        const loginForm = document.getElementById('login-form');
-        const regForm = document.getElementById('register-form');
-        const authStatus = document.getElementById('auth-status-msg') || createAuthStatusElement();
-
-        function createAuthStatusElement() {
-            const el = document.createElement('div');
-            el.id = 'auth-status-msg';
-            el.style.textAlign = 'center';
-            el.style.marginTop = '10px';
-            el.style.fontSize = '12px';
-            // Insert after forms
-            if (loginForm && loginForm.parentNode) {
-                loginForm.parentNode.insertBefore(el, loginForm.nextSibling);
-            }
-            return el;
-        }
-
-        function showStatus(msg, type = 'info') {
-            if (authStatus) {
-                authStatus.textContent = msg;
-                authStatus.style.color = type === 'error' ? '#e74c3c' : '#2ecc71';
-            }
-        }
-
-        if (loginTab && regTab) {
-            loginTab.addEventListener('click', () => {
-                loginTab.classList.add('active');
-                regTab.classList.remove('active');
-                loginForm.style.display = 'flex';
-                regForm.style.display = 'none';
-                showStatus('');
-            });
-
-            regTab.addEventListener('click', () => {
-                regTab.classList.add('active');
-                loginTab.classList.remove('active');
-                loginForm.style.display = 'none';
-                regForm.style.display = 'flex';
-                showStatus('');
-            });
-        }
-
-        // Login Form
-        if (loginForm) {
-            loginForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                if (!supabaseClient) {
-                    showStatus('Supabase client not loaded', 'error');
-                    return;
-                }
-                showStatus('Logging in...');
-                const email = document.getElementById('login-email').value;
-                const password = document.getElementById('login-password').value;
-
-                try {
-                    const { data, error } = await supabaseClient.auth.signInWithPassword({
-                        email,
-                        password
-                    });
-
-                    if (error) throw error;
-
-                    // Success
-                    chrome.storage.local.set({ authUser: data.user, authSession: data.session }, () => {
-                        showStatus('Login Successful!', 'success');
-                        setTimeout(() => showTrackingDashboard(data.user), 1000);
-                    });
-
-                } catch (err) {
-                    showStatus(err.message, 'error');
-                }
-            });
-        }
-
-        // Register Form
-        if (regForm) {
-            // Password Toggle Logic
-            const toggleBtn = document.getElementById('reg-password-toggle');
-            const passInput = document.getElementById('reg-password');
-            const eyeOpen = toggleBtn ? toggleBtn.querySelector('.eye-open') : null;
-            const eyeClosed = toggleBtn ? toggleBtn.querySelector('.eye-closed') : null;
-
-            if (toggleBtn && passInput) {
-                toggleBtn.addEventListener('click', () => {
-                    const type = passInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                    passInput.setAttribute('type', type);
-
-                    if (eyeOpen && eyeClosed) {
-                        eyeOpen.style.display = type === 'password' ? 'block' : 'none';
-                        eyeClosed.style.display = type === 'password' ? 'none' : 'block';
-                    }
-                });
-            }
-
-            regForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                if (!supabaseClient) {
-                    showStatus('Supabase client not loaded', 'error');
-                    return;
-                }
-
-                // Loading UI
-                const loader = document.getElementById('reg-loading-container');
-                const btn = regForm.querySelector('button[type="submit"]');
-                if (loader) loader.style.display = 'block';
-                if (btn) btn.style.display = 'none';
-
-                const name = document.getElementById('reg-name').value;
-                const email = document.getElementById('reg-email').value;
-                const password = document.getElementById('reg-password').value;
-
-                try {
-                    const { data, error } = await supabaseClient.auth.signUp({
-                        email,
-                        password,
-                        options: {
-                            data: { full_name: name }
-                        }
-                    });
-
-                    if (error) throw error;
-
-                    // Success
-                    // Note: Supabase might require email confirmation unless disabled in dashboard. 
-                    // Assuming auto-confirm or session provided.
-                    if (data.user && data.session) {
-                        chrome.storage.local.set({ authUser: data.user, authSession: data.session }, () => {
-                            showStatus('Registered Successfully!', 'success');
-                            setTimeout(() => showTrackingDashboard(data.user), 1000);
-                        });
-                    } else if (data.user && !data.session) {
-                        showStatus('Registration successful! Please check your email to confirm.', 'success');
-                        if (loader) loader.style.display = 'none';
-                        if (btn) btn.style.display = 'block';
-                    }
-
-                } catch (err) {
-                    showStatus(err.message, 'error');
-                    if (loader) loader.style.display = 'none';
-                    if (btn) btn.style.display = 'block';
-                }
-            });
-        }
-
-        // Logout
-        const logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                chrome.storage.local.remove(['authUser', 'authSession'], () => {
-                    showAuthForm();
-                    showStatus('');
-                });
-            });
-        }
-
-        // Copy Script
-        const copyScriptBtn = document.getElementById('copy-script-btn');
-        if (copyScriptBtn) {
-            copyScriptBtn.addEventListener('click', () => {
-                const code = document.getElementById('tracking-script-code').innerText;
-                navigator.clipboard.writeText(code);
-                const originalIcon = copyScriptBtn.innerHTML;
-                copyScriptBtn.innerHTML = '<span style="font-size:10px;">Copied</span>';
-                setTimeout(() => copyScriptBtn.innerHTML = originalIcon, 1500);
-            });
-        }
-    }
-
-    function showAuthForm() {
-        const container = document.getElementById('tracking-auth-container');
-        const dashboard = document.getElementById('tracking-dashboard-container');
-        if (container) container.style.display = 'block';
-        if (dashboard) dashboard.style.display = 'none';
-
-        const logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) logoutBtn.style.display = 'none';
-    }
-
-    function showTrackingDashboard(user) {
-        const container = document.getElementById('tracking-auth-container');
-        const dashboard = document.getElementById('tracking-dashboard-container');
-        if (container) container.style.display = 'none';
-        if (dashboard) dashboard.style.display = 'block';
-
-        const logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) logoutBtn.style.display = 'flex';
-
-        // Update Script ID
-        const codeEl = document.getElementById('tracking-script-code');
-        if (codeEl) {
-            codeEl.innerHTML = codeEl.innerHTML.replace(/LB-[A-Z0-9]+/, user.id || 'LB-XXXXX');
-        }
-    }
 
     async function loadAnalytics() {
-        // Re-using fetch logic to ensure fresh data for charts
         const { linkHistory = [] } = await chrome.storage.local.get(['linkHistory']);
+
+        // Use ONLY real data - NO dummy data
+
 
         // Process Data
         const total = linkHistory.length;
@@ -1201,17 +1075,58 @@ document.addEventListener('DOMContentLoaded', () => {
             if (item.shortened) contentStats.shortened++;
         });
 
-        // Update KPIs
+        // Update KPIs with empty state handling
         const kpiTotal = document.getElementById('kpi-total');
         const kpiWeek = document.getElementById('kpi-week');
         const kpiSource = document.getElementById('kpi-source');
 
-        if (kpiTotal) kpiTotal.textContent = total;
-        if (kpiWeek) kpiWeek.textContent = weekCount;
+        const compTotal = document.getElementById('compliment-total');
+        const compWeek = document.getElementById('compliment-week');
+        const compSource = document.getElementById('compliment-source');
+
+        if (kpiTotal) {
+            kpiTotal.textContent = total > 0 ? total.toLocaleString() : '—';
+            kpiTotal.style.opacity = total > 0 ? '1' : '0.5';
+        }
+        if (kpiWeek) {
+            kpiWeek.textContent = weekCount > 0 ? weekCount.toLocaleString() : '—';
+            kpiWeek.style.opacity = weekCount > 0 ? '1' : '0.5';
+        }
 
         const sortedSources = Object.entries(sources).sort((a, b) => b[1] - a[1]);
-        const topSource = sortedSources.length > 0 ? sortedSources[0][0] : '-';
-        if (kpiSource) kpiSource.textContent = topSource;
+        const topSource = sortedSources.length > 0 && sortedSources[0][0] !== '(direct)' ? sortedSources[0][0] : '—';
+        if (kpiSource) {
+            kpiSource.textContent = topSource;
+            kpiSource.style.opacity = topSource !== '—' ? '1' : '0.5';
+        }
+
+        // Set Compliments
+        if (compTotal) {
+            if (total === 0) compTotal.textContent = "Start your journey! 🚀";
+            else if (total < 50) compTotal.textContent = "You are on the path to greatness! ✨";
+            else if (total < 150) compTotal.textContent = "Your productivity is soaring! 📈";
+            else compTotal.textContent = "Legendary status achieved! 🏆";
+        }
+
+        if (compWeek) {
+            if (weekCount === 0) compWeek.textContent = "Waiting for the first boost... ⏳";
+            else if (weekCount < 10) compWeek.textContent = "Building momentum! 👍";
+            else if (weekCount < 40) compWeek.textContent = "You're a boosting machine! ⚡";
+            else compWeek.textContent = "Absolutely unstoppable! 🔥";
+        }
+
+        if (compSource) {
+            if (topSource === '-') {
+                compSource.textContent = "No links boosted yet.";
+            } else {
+                const famous = ['google', 'facebook', 'facebook.com', 'google.com', 'linkedin', 'twitter', 'instagram', 'youtube', 'newsletter'];
+                if (famous.includes(topSource.toLowerCase())) {
+                    compSource.textContent = "Playing with the top guns! 🚀";
+                } else {
+                    compSource.textContent = "Interesting one... 🧐";
+                }
+            }
+        }
 
         // Render Charts
         if (document.getElementById('activity-chart')) {
@@ -1228,18 +1143,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ['Shortened Links', contentStats.shortened]
             ].sort((a, b) => b[1] - a[1]);
 
-            // Filter out zero values for pie chart cleanliness
             const activeData = typeData.filter(d => d[1] > 0);
-
-            // Calculate actual total of these parts logic (since they are non-exclusive, 'total' param from linkHistory.length might not be the sum of these parts).
-            // For a pie chart, the "whole" is the sum of the parts displayed, OR we show them relative to total links?
-            // "Top Content Types" usually implies composition. But since it's overlapping, a pie chart is technically misleading if slices add up to > 100% of links.
-            // USER REQUESTED: "cool pie chart". User also requested "non-exclusive".
-            // If I have 1 link that is BOTH UTM and QR.
-            // UTM: 1, QR: 1. Total: 1.
-            // If I plot this on a pie, sum is 2. Slices are 50%/50%.
-            // This visualizes the "ratio of features used". I will proceed with this interpretation (sum of feature usages).
-
             renderPieChart('content-chart', activeData);
         }
     }
@@ -1311,10 +1215,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById(containerId);
         if (!container) return;
 
-        // Enforce Layout
         container.classList.add('pie');
-        container.classList.remove('vertical', 'horizontal');
-
         container.innerHTML = '';
 
         if (data.length === 0) {
@@ -1328,7 +1229,7 @@ document.addEventListener('DOMContentLoaded', () => {
         wrapper.style.display = 'flex';
         wrapper.style.alignItems = 'center';
         wrapper.style.justifyContent = 'center';
-        wrapper.style.gap = '24px';
+        wrapper.style.gap = '32px';
         wrapper.style.width = '100%';
 
         const size = 160;
@@ -1339,9 +1240,7 @@ document.addEventListener('DOMContentLoaded', () => {
         svg.style.transform = 'rotate(-90deg)';
 
         const legend = document.createElement('div');
-        legend.style.display = 'flex';
-        legend.style.flexDirection = 'column';
-        legend.style.gap = '8px';
+        legend.className = 'pie-legend-wrapper';
 
         let cumulativePercent = 0;
         const colors = ['#00d2d3', '#5f27cd', '#ff9f43', '#ee5253', '#2e86de'];
@@ -1355,43 +1254,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const endY = Math.sin(2 * Math.PI * cumulativePercent);
 
             const largeArcFlag = percent > 0.5 ? 1 : 0;
-
             let pathData;
             if (percent === 1) {
                 pathData = `M 1 0 A 1 1 0 1 1 -1 0 A 1 1 0 1 1 1 0`;
             } else {
-                pathData = [
-                    `M 0 0`,
-                    `L ${startX} ${startY}`,
-                    `A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY}`,
-                    `Z`
-                ].join(' ');
+                pathData = [`M 0 0`, `L ${startX} ${startY}`, `A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY}`, `Z`].join(' ');
             }
 
             const color = colors[index % colors.length];
-
             const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
             path.setAttribute('d', pathData);
             path.setAttribute('fill', color);
-            path.style.transition = 'transform 0.2s';
-            path.style.cursor = 'pointer';
-
-            path.addEventListener('mouseenter', function () { this.style.opacity = '0.8'; });
-            path.addEventListener('mouseleave', function () { this.style.opacity = '1'; });
-
-            const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
-            title.textContent = `${label}: ${count}`;
-            path.appendChild(title);
-
+            path.style.transition = 'opacity 0.2s';
             svg.appendChild(path);
 
+            // New legend item structure
             const item = document.createElement('div');
-            item.style.display = 'flex';
-            item.style.alignItems = 'center';
-            item.style.fontSize = '12px';
-            item.style.color = 'var(--text-color)';
+            item.className = 'pie-legend-item';
             item.innerHTML = `
-                <span style="display:inline-block; width:10px; height:10px; background:${color}; border-radius:2px; margin-right:8px;"></span>
+                <div class="pie-color-box" style="background:${color}"></div>
                 <span>${label} (${Math.round(percent * 100)}%)</span>
             `;
             legend.appendChild(item);
@@ -1401,5 +1282,787 @@ document.addEventListener('DOMContentLoaded', () => {
         wrapper.appendChild(legend);
         container.appendChild(wrapper);
     }
+
+
+
+    // --- Website Tracking Logic ---
+    // --- Local Analytics Logic ---
+    function loadLocalAnalytics() {
+        chrome.storage.local.get(['linkHistory', 'history'], (result) => {
+            const history = result.linkHistory || result.history || [];
+
+            // Calculate Stats
+            const totalLinks = history.length;
+
+            // This Week (Last 7 Days)
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            const linksThisWeek = history.filter(h => h.timestamp && new Date(h.timestamp) >= oneWeekAgo).length;
+
+            // Prepare Chart Data (Daily Activity - Last 14 Days)
+            const activityMap = {};
+            const today = new Date();
+            for (let i = 13; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(today.getDate() - i);
+                const dateStr = d.toISOString().split('T')[0];
+                activityMap[dateStr] = 0;
+            }
+
+            // Calculate Top Sources and Mediums (Moved up for KPI usage)
+            const sourceMap = {};
+            const contentMap = {};
+
+            history.forEach(h => {
+                // Chart Data
+                if (h.timestamp) {
+                    const d = new Date(h.timestamp);
+                    const dateStr = d.toISOString().split('T')[0];
+                    if (activityMap[dateStr] !== undefined) {
+                        activityMap[dateStr]++;
+                    }
+                }
+
+                // Sources/Mediums
+                if (h.utm && h.utm.source) {
+                    const s = h.utm.source.toLowerCase();
+                    sourceMap[s] = (sourceMap[s] || 0) + 1;
+                }
+                if (h.utm && h.utm.medium) {
+                    const m = h.utm.medium.toLowerCase();
+                    contentMap[m] = (contentMap[m] || 0) + 1;
+                }
+            });
+
+            // Helper to sort and slice
+            const getTop = (map) => Object.entries(map)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(([name, count]) => ({ name, count }));
+
+            const topSources = getTop(sourceMap);
+            const topContent = getTop(contentMap);
+
+            // Top Source KPI
+            const topSourceLabel = topSources.length > 0 ? topSources[0].name : '-';
+
+            // DOM Elements
+            const kpiTotal = document.getElementById('kpi-views');
+            const kpiWeek = document.getElementById('kpi-session');
+            const kpiSource = document.getElementById('kpi-clicks');
+
+            // Update KPIs with empty state handling
+            if (kpiTotal) {
+                kpiTotal.textContent = totalLinks > 0 ? totalLinks.toLocaleString() : '—';
+                kpiTotal.style.opacity = totalLinks > 0 ? '1' : '0.5';
+            }
+            if (kpiWeek) {
+                kpiWeek.textContent = linksThisWeek > 0 ? linksThisWeek.toLocaleString() : '—';
+                kpiWeek.style.opacity = linksThisWeek > 0 ? '1' : '0.5';
+            }
+            if (kpiSource) {
+                kpiSource.textContent = topSourceLabel !== '-' ? topSourceLabel : '—';
+                kpiSource.style.opacity = topSourceLabel !== '-' ? '1' : '0.5';
+            }
+
+            const chartData = Object.keys(activityMap).map(date => ({
+                date,
+                count: activityMap[date]
+            }));
+
+            renderActivityChartNew(chartData);
+            renderTopListChart('source-chart', topSources);
+            renderTopListChart('content-chart', topContent);
+        });
+    }
+
+    function renderActivityChart(data) {
+        const container = document.getElementById('activity-chart');
+        if (!container) return;
+
+        container.innerHTML = '';
+        if (data.length === 0) {
+            container.innerHTML = '<div style="height:100%; display:flex; align-items:center; justify-content:center; color:var(--secondary-text);">No activity yet</div>';
+            return;
+        }
+
+        // SVG Chart Dimensions
+        const width = container.clientWidth || 600;
+        const height = container.clientHeight || 200;
+        const padding = 20;
+        const maxVal = Math.max(...data.map(d => d.count), 5); // Minimum scale of 5
+
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("width", "100%");
+        svg.setAttribute("height", "100%");
+        svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+        svg.style.overflow = "visible";
+
+        // Generate Path
+        let pathD = "";
+        const points = [];
+
+        const stepX = (width - padding * 2) / (data.length - 1);
+        const scaleY = (height - padding * 2) / maxVal;
+
+        data.forEach((d, i) => {
+            const x = padding + i * stepX;
+            const y = height - padding - (d.count * scaleY);
+            points.push({ x, y, count: d.count, date: d.date });
+            if (i === 0) {
+                pathD += `M ${x} ${y}`;
+            } else {
+                pathD += ` L ${x} ${y}`;
+            }
+        });
+
+        // Gradient Definition
+        const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+        defs.innerHTML = `
+            <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="var(--primary-color)" stop-opacity="0.2"/>
+                <stop offset="100%" stop-color="var(--primary-color)" stop-opacity="0"/>
+            </linearGradient>
+        `;
+        svg.appendChild(defs);
+
+        // Fill Area
+        const fillPathD = pathD + ` L ${width - padding} ${height - padding} L ${padding} ${height - padding} Z`;
+        const fillPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        fillPath.setAttribute("d", fillPathD);
+        fillPath.setAttribute("fill", "url(#chartGradient)");
+        svg.appendChild(fillPath);
+
+        // Stroke Line
+        const pathLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        pathLine.setAttribute("d", pathD);
+        pathLine.setAttribute("fill", "none");
+        pathLine.setAttribute("stroke", "var(--primary-color)");
+        pathLine.setAttribute("stroke-width", "2");
+        pathLine.setAttribute("stroke-linecap", "round");
+        pathLine.setAttribute("stroke-linejoin", "round");
+        svg.appendChild(pathLine);
+
+        // Points
+        points.forEach(p => {
+            const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            circle.setAttribute("cx", p.x);
+            circle.setAttribute("cy", p.y);
+            circle.setAttribute("r", "3");
+            circle.setAttribute("fill", "var(--card-bg)");
+            circle.setAttribute("stroke", "var(--primary-color)");
+            circle.setAttribute("stroke-width", "2");
+
+            // Tooltip logic (simple title)
+            const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+            title.textContent = `${p.date}: ${p.count}`;
+            circle.appendChild(title);
+
+            svg.appendChild(circle);
+        });
+
+        container.appendChild(svg);
+    }
+
+    function renderTopListChart(containerId, data) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = '';
+
+        if (!data || data.length === 0) {
+            container.innerHTML = '<div style="color:var(--secondary-text); font-size:13px; text-align:center; padding-top:20px;">No data yet</div>';
+            return;
+        }
+
+        const ul = document.createElement('ul');
+        ul.style.listStyle = 'none';
+        ul.style.padding = '0';
+        ul.style.margin = '0';
+        ul.style.width = '100%';
+
+        const max = Math.max(...data.map(d => d.count));
+
+        data.forEach(d => {
+            const li = document.createElement('li');
+            li.style.marginBottom = '12px';
+
+            const header = document.createElement('div');
+            header.style.display = 'flex';
+            header.style.justifyContent = 'space-between';
+            header.style.fontSize = '12px';
+            header.style.marginBottom = '4px';
+            header.style.color = 'var(--text-color)';
+
+            const nameSpan = document.createElement('strong');
+            nameSpan.textContent = d.name;
+            const countSpan = document.createElement('span');
+            countSpan.textContent = d.count.toLocaleString();
+
+            header.appendChild(nameSpan);
+            header.appendChild(countSpan);
+
+            const barBg = document.createElement('div');
+            barBg.style.height = '6px';
+            barBg.style.borderRadius = '3px';
+            barBg.style.backgroundColor = 'rgba(0,0,0,0.05)';
+            barBg.style.width = '100%';
+
+            const barFill = document.createElement('div');
+            const pc = (d.count / max) * 100;
+            barFill.style.height = '100%';
+            barFill.style.borderRadius = '3px';
+            barFill.style.backgroundColor = 'var(--primary-color)';
+            barFill.style.width = `${pc}%`;
+
+            barBg.appendChild(barFill);
+            li.appendChild(header);
+            li.appendChild(barBg);
+            ul.appendChild(li);
+        });
+
+        container.appendChild(ul);
+    }
+
+    function renderActivityChartNew(data) {
+        const container = document.getElementById('activity-chart');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        // SVG Chart Dimensions
+        const width = container.clientWidth || 600;
+        const height = container.clientHeight || 200;
+        const padding = { top: 10, right: 10, bottom: 30, left: 40 };
+        const chartW = width - padding.left - padding.right;
+        const chartH = height - padding.top - padding.bottom;
+
+        // Determine scale
+        let maxVal = 5;
+        if (data.length > 0) {
+            const m = Math.max(...data.map(d => d.count));
+            if (m > 0) maxVal = m;
+        }
+
+        const effectiveData = data.length > 0 ? data : [];
+
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("width", "100%");
+        svg.setAttribute("height", "100%");
+        svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+        svg.style.overflow = "visible";
+
+        // --- DRAW AXES ---
+        // Y-Axis Line
+        const yAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        yAxis.setAttribute("x1", padding.left);
+        yAxis.setAttribute("y1", padding.top);
+        yAxis.setAttribute("x2", padding.left);
+        yAxis.setAttribute("y2", height - padding.bottom);
+        yAxis.setAttribute("stroke", "var(--border-color)");
+        yAxis.setAttribute("stroke-width", "1");
+        svg.appendChild(yAxis);
+
+        // X-Axis Line
+        const xAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        xAxis.setAttribute("x1", padding.left);
+        xAxis.setAttribute("y1", height - padding.bottom);
+        xAxis.setAttribute("x2", width - padding.right);
+        xAxis.setAttribute("y2", height - padding.bottom);
+        xAxis.setAttribute("stroke", "var(--border-color)");
+        xAxis.setAttribute("stroke-width", "1");
+        svg.appendChild(xAxis);
+
+        // Y-Axis Labels (0, 25%, 50%, 75%, 100%)
+        const yTicks = [0, 0.25, 0.5, 0.75, 1].map(f => Math.round(f * maxVal));
+        const uniqueTicks = [...new Set(yTicks)].sort((a, b) => a - b);
+
+        uniqueTicks.forEach(tick => {
+            const y = height - padding.bottom - (tick / maxVal) * chartH;
+            const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            text.setAttribute("x", padding.left - 8);
+            text.setAttribute("y", y + 4);
+            text.setAttribute("text-anchor", "end");
+            text.setAttribute("fill", "var(--secondary-text)");
+            text.setAttribute("font-size", "10px");
+            text.textContent = tick;
+            svg.appendChild(text);
+
+            // Grid line
+            if (tick > 0) {
+                const grid = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                grid.setAttribute("x1", padding.left);
+                grid.setAttribute("y1", y);
+                grid.setAttribute("x2", width - padding.right);
+                grid.setAttribute("y2", y);
+                grid.setAttribute("stroke", "var(--border-color)");
+                grid.setAttribute("stroke-dasharray", "4 4");
+                grid.setAttribute("stroke-opacity", "0.3");
+                svg.appendChild(grid);
+            }
+        });
+
+        // X-Axis Labels (All days for last 14 days)
+        if (effectiveData.length > 0) {
+            const stepX = chartW / (effectiveData.length - 1);
+            effectiveData.forEach((d, i) => {
+                // Always show label, but might need to skip if too crowded.
+                // With 14 days, it should fit if font is small.
+                const x = padding.left + i * stepX;
+
+                // Show every label if <= 15 data points, else skip
+                if (effectiveData.length <= 15 || i % 2 === 0) {
+                    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    text.setAttribute("x", x);
+                    text.setAttribute("y", height - padding.bottom + 15);
+                    text.setAttribute("text-anchor", "middle");
+                    text.setAttribute("fill", "var(--secondary-text)");
+                    text.setAttribute("font-size", "9px"); // Slightly smaller
+
+                    const dateParts = d.date.split('-');
+                    text.textContent = `${dateParts[1]}/${dateParts[2]}`;
+                    svg.appendChild(text);
+                }
+            });
+
+            // --- DRAW DATA PATH ---
+            let pathD = "";
+            const points = [];
+
+            effectiveData.forEach((d, i) => {
+                const x = padding.left + i * stepX;
+                const y = height - padding.bottom - (d.count / maxVal) * chartH;
+                points.push({ x, y, count: d.count, date: d.date });
+
+                if (i === 0) pathD += `M ${x} ${y}`;
+                else pathD += ` L ${x} ${y}`;
+            });
+
+            const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+            defs.innerHTML = `
+                <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stop-color="var(--primary-color)" stop-opacity="0.2"/>
+                    <stop offset="100%" stop-color="var(--primary-color)" stop-opacity="0"/>
+                </linearGradient>
+            `;
+            svg.appendChild(defs);
+
+            const fillPathD = pathD + ` L ${width - padding.right} ${height - padding.bottom} L ${padding.left} ${height - padding.bottom} Z`;
+            const fillPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            fillPath.setAttribute("d", fillPathD);
+            fillPath.setAttribute("fill", "url(#chartGradient)");
+            svg.appendChild(fillPath);
+
+            const pathLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            pathLine.setAttribute("d", pathD);
+            pathLine.setAttribute("fill", "none");
+            pathLine.setAttribute("stroke", "var(--primary-color)");
+            pathLine.setAttribute("stroke-width", "2");
+            pathLine.setAttribute("stroke-linecap", "round");
+            pathLine.setAttribute("stroke-linejoin", "round");
+            svg.appendChild(pathLine);
+
+            points.forEach(p => {
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", p.x);
+                circle.setAttribute("cy", p.y);
+                circle.setAttribute("r", "3");
+                circle.setAttribute("fill", "var(--card-bg)");
+                circle.setAttribute("stroke", "var(--primary-color)");
+                circle.setAttribute("stroke-width", "2");
+
+                const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+                title.textContent = `${p.date}: ${p.count}`;
+                circle.appendChild(title);
+
+                svg.appendChild(circle);
+            });
+        }
+
+        container.appendChild(svg);
+    }
+
+    // --- Website Tracking Logic ---
+    function initAuthLogic() {
+        // Initialize Supabase
+        const SUPABASE_URL = 'https://werjvrzdbpbyasftmlkl.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlcmp2cnpkYnBieWFzZnRtbGtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2MjU1ODcsImV4cCI6MjA4NDIwMTU4N30.FhAJ30gpTX81uv90weWA6MJJxC1DpVYcZv6YAMI9Lkk'; // Anon Key
+
+        // Ensure supabase is available
+        const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+            auth: {
+                storage: {
+                    getItem: async (key) => {
+                        return new Promise((resolve) => {
+                            chrome.storage.local.get([key], (result) => resolve(result[key]));
+                        });
+                    },
+                    setItem: async (key, value) => {
+                        return new Promise((resolve) => {
+                            chrome.storage.local.set({ [key]: value }, () => resolve());
+                        });
+                    },
+                    removeItem: async (key) => {
+                        return new Promise((resolve) => {
+                            chrome.storage.local.remove([key], () => resolve());
+                        });
+                    }
+                }
+            }
+        }) : null;
+
+        if (!supabaseClient) {
+            console.error("Supabase client could not be initialized.");
+            return;
+        }
+
+        // EXPLICIT SESSION RECOVERY FOR EXTENSION REDIRECTS
+        // Chrome Extensions sometimes don't auto-process the hash in the same tick.
+        // We force a check here.
+        if (window.location.hash && (window.location.hash.includes('access_token') || window.location.hash.includes('refresh_token'))) {
+            // Give the client a moment to mount, but effectively it should grab it.
+            supabaseClient.auth.getSession().then(({ data, error }) => {
+                if (data.session) {
+                    console.log("Session recovered from URL", data.session);
+                    // Set local storage immediately
+                    chrome.storage.local.set({ authUser: data.session.user, authSession: data.session });
+                    showTrackingDashboard(data.session.user);
+                    syncUserProfile(data.session.user);
+
+                    // Clean URL Hash for aesthetics
+                    window.location.hash = 'tracking';
+                } else if (error) {
+                    console.error("Error recovering session:", error);
+                    showStatus("Error verifying email link.", "error");
+                }
+            });
+        }
+
+        // Listen for Auth State Changes
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+            console.log("Auth State Change:", event, session);
+            if (event === 'SIGNED_IN' && session) {
+                chrome.storage.local.set({ authUser: session.user, authSession: session });
+                showTrackingDashboard(session.user);
+                syncUserProfile(session.user); // Sync data to DB
+            } else if (event === 'SIGNED_OUT') {
+                chrome.storage.local.remove(['authUser', 'authSession']);
+                showAuthForm();
+            }
+        });
+
+        // Helper: Sync User Profile to Supabase Table
+        async function syncUserProfile(user) {
+            try {
+                const updates = {
+                    id: user.id,
+                    email: user.email,
+                    full_name: user.user_metadata?.full_name || '',
+                    updated_at: new Date()
+                };
+
+                const { error } = await supabaseClient
+                    .from('profiles')
+                    .upsert(updates);
+
+                if (error) {
+                    console.error('Error syncing profile:', error);
+                } else {
+                    console.log('Profile synced successfully');
+                }
+            } catch (err) {
+                console.error('Profile sync exception:', err);
+            }
+        }
+
+        // Tab Scavenger: Check for open tabs with auth tokens (Fix for "redirected but not logged in")
+        function scavengeAuthToken() {
+            if (!chrome.tabs) return;
+
+            // Query for the callback URL
+            chrome.tabs.query({ url: 'https://link-booster.link/auth/callback*' }, (tabs) => {
+                if (!tabs || tabs.length === 0) return;
+
+                tabs.forEach(tab => {
+                    if (tab.url && (tab.url.includes('access_token=') || tab.url.includes('refresh_token='))) {
+                        console.log("Found auth token in external tab:", tab.url);
+
+                        // Parse hash manually
+                        try {
+                            const hashIndex = tab.url.indexOf('#');
+                            if (hashIndex === -1) return;
+
+                            const hash = tab.url.substring(hashIndex + 1);
+                            const params = new URLSearchParams(hash);
+                            const accessToken = params.get('access_token');
+                            const refreshToken = params.get('refresh_token');
+
+                            if (accessToken && refreshToken) {
+                                supabaseClient.auth.setSession({
+                                    access_token: accessToken,
+                                    refresh_token: refreshToken
+                                }).then(({ data, error }) => {
+                                    if (!error && data.session) {
+                                        console.log("Successfully scavenged session!");
+                                        showStatus("Logged in via external tab!", "success");
+
+                                        // Close the success tab to bring focus back to extension (optional but nice)
+                                        chrome.tabs.remove(tab.id);
+                                    }
+                                });
+                            }
+                        } catch (e) {
+                            console.error("Error parsing external tab token", e);
+                        }
+                    }
+                });
+            });
+        }
+
+        // Run scavenger on load and focus
+        scavengeAuthToken();
+        window.addEventListener('focus', scavengeAuthToken);
+
+        // Check Initial Session (Modified for Local Analytics)
+        // We now show the dashboard by default populated with local stats.
+        // Auth logic remains if user IS logged in for profile sync, but visual priority is local stats.
+
+        // Show dashboard immediately
+        showTrackingDashboard(null); // Pass null as user initially
+        loadLocalAnalytics();
+
+        chrome.storage.local.get(['authUser', 'authSession'], async (res) => {
+            if (res.authSession) {
+                // Verify if session is still valid
+                const { data: { user }, error } = await supabaseClient.auth.getUser(res.authSession.access_token);
+                if (user && !error) {
+                    showTrackingDashboard(user);
+                    // syncUserProfile(user); 
+                } else {
+                    chrome.storage.local.remove(['authUser', 'authSession']);
+                    // Do not showAuthForm(), keep dashboard visible for local stats
+                    showTrackingDashboard(null);
+                }
+            }
+        });
+
+        // ... rest of event listeners ...
+
+        // Auth Tabs
+        const loginTab = document.getElementById('tab-login');
+        const regTab = document.getElementById('tab-register');
+        const loginForm = document.getElementById('login-form');
+        const regForm = document.getElementById('register-form');
+        const authStatus = document.getElementById('auth-status-msg') || createAuthStatusElement();
+
+        function createAuthStatusElement() {
+            const el = document.createElement('div');
+            el.id = 'auth-status-msg';
+            el.style.textAlign = 'center';
+            el.style.marginTop = '16px';
+            el.style.fontSize = '13px';
+            el.style.fontWeight = '500';
+            // Insert after forms
+            if (loginForm && loginForm.parentNode) {
+                loginForm.parentNode.insertBefore(el, loginForm.nextSibling);
+            }
+            return el;
+        }
+
+        function showStatus(msg, type = 'info') {
+            if (authStatus) {
+                authStatus.textContent = msg;
+                authStatus.style.color = type === 'error' ? '#ff7675' : (type === 'success' ? '#00b894' : 'var(--secondary-text)');
+                authStatus.className = type; // for potential CSS styling
+            }
+        }
+
+        if (loginTab && regTab) {
+            loginTab.addEventListener('click', () => {
+                loginTab.classList.add('active');
+                regTab.classList.remove('active');
+                loginForm.style.display = 'flex';
+                regForm.style.display = 'none';
+                showStatus('');
+            });
+
+            regTab.addEventListener('click', () => {
+                regTab.classList.add('active');
+                loginTab.classList.remove('active');
+                loginForm.style.display = 'none';
+                regForm.style.display = 'flex';
+                showStatus('');
+            });
+        }
+
+        // Login Form
+        if (loginForm) {
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                showStatus('Logging in...');
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+
+                try {
+                    const { data, error } = await supabaseClient.auth.signInWithPassword({
+                        email,
+                        password
+                    });
+
+                    if (error) throw error;
+                    // onAuthStateChange will handle the UI update + profile sync
+                } catch (err) {
+                    showStatus(err.message || 'Login failed', 'error');
+                }
+            });
+        }
+
+        // Register Form
+        if (regForm) {
+            // Password Toggle Logic
+            const toggleBtn = document.getElementById('reg-password-toggle');
+            const passInput = document.getElementById('reg-password');
+            const eyeOpen = toggleBtn ? toggleBtn.querySelector('.eye-open') : null;
+            const eyeClosed = toggleBtn ? toggleBtn.querySelector('.eye-closed') : null;
+
+            if (toggleBtn && passInput) {
+                toggleBtn.addEventListener('click', () => {
+                    const type = passInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passInput.setAttribute('type', type);
+
+                    if (eyeOpen && eyeClosed) {
+                        eyeOpen.style.display = type === 'password' ? 'block' : 'none';
+                        eyeClosed.style.display = type === 'password' ? 'none' : 'block';
+                    }
+                });
+            }
+
+            regForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                // Loading UI
+                const loader = document.getElementById('reg-loading-container');
+                const btn = regForm.querySelector('button[type="submit"]');
+                if (loader) loader.style.display = 'block';
+                if (btn) btn.style.display = 'none';
+
+                const name = document.getElementById('reg-name').value;
+                const email = document.getElementById('reg-email').value;
+                const password = document.getElementById('reg-password').value;
+
+                try {
+                    // Get extension URL for redirection (best effort)
+                    const redirectUrl = chrome.runtime.getURL('options.html');
+
+                    const { data, error } = await supabaseClient.auth.signUp({
+                        email,
+                        password,
+                        options: {
+                            data: { full_name: name },
+                            emailRedirectTo: 'https://link-booster.link/auth/callback'
+                        }
+                    });
+
+                    if (error) throw error;
+
+                    // Success handling
+                    if (data.user && data.session) {
+                        showStatus('Registered Successfully!', 'success');
+                        // onAuthStateChange handles UI + sync
+                    } else if (data.user && !data.session) {
+                        showStatus('Account created! Please check your email to verify.', 'success');
+
+                        // We can attempt to sync the profile here even before verification if RLS allows, 
+                        // but usually it's better to wait for sign-in event.
+                        // However, we can TRY to create the profile entry now.
+                        syncUserProfile(data.user);
+                    }
+
+                } catch (err) {
+                    showStatus(err.message || 'Registration failed', 'error');
+                    if (loader) loader.style.display = 'none';
+                    if (btn) btn.style.display = 'block';
+                }
+            });
+        }
+
+        // Social Login Handlers
+        ['google', 'facebook', 'apple'].forEach(provider => {
+            const btn = document.getElementById(`social-${provider}`);
+            if (btn) {
+                btn.addEventListener('click', async () => {
+                    showStatus(`Connecting to ${provider}...`);
+                    try {
+                        const { data, error } = await supabaseClient.auth.signInWithOAuth({
+                            provider: provider,
+                            options: {
+                                redirectTo: 'https://link-booster.link/auth/callback'
+                            }
+                        });
+                        if (error) throw error;
+                    } catch (err) {
+                        showStatus(err.message || 'Social login failed', 'error');
+                    }
+                });
+            }
+        });
+
+        // Logout
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                await supabaseClient.auth.signOut();
+                // onAuthStateChange will handle UI
+                showStatus('Logged out', 'info');
+            });
+        }
+
+        // Copy Script
+        const copyScriptBtn = document.getElementById('copy-script-btn');
+        if (copyScriptBtn) {
+            copyScriptBtn.addEventListener('click', () => {
+                const codeBlock = document.getElementById('tracking-script-code');
+                const text = codeBlock.innerText || codeBlock.textContent;
+                navigator.clipboard.writeText(text);
+
+                const originalContent = copyScriptBtn.innerHTML;
+                copyScriptBtn.innerHTML = '<span style="font-size:10px; font-weight:bold;">✓</span>';
+                copyScriptBtn.style.color = 'var(--primary-color)';
+                copyScriptBtn.style.borderColor = 'var(--primary-color)';
+
+                setTimeout(() => {
+                    copyScriptBtn.innerHTML = originalContent;
+                    copyScriptBtn.style.color = '';
+                    copyScriptBtn.style.borderColor = '';
+                }, 2000);
+            });
+        }
+    }
+
+    function showAuthForm() {
+        const container = document.getElementById('tracking-auth-container');
+        const dashboard = document.getElementById('tracking-dashboard-container');
+        if (container) container.style.display = 'block';
+        if (dashboard) dashboard.style.display = 'none';
+
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) logoutBtn.style.display = 'none';
+    }
+
+    function showTrackingDashboard(user) {
+        const container = document.getElementById('tracking-auth-container');
+        const dashboard = document.getElementById('tracking-dashboard-container');
+        if (container) container.style.display = 'none';
+        if (dashboard) dashboard.style.display = 'block';
+
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) logoutBtn.style.display = 'flex';
+
+        // Load Local Stats (No Supabase required)
+        loadLocalAnalytics();
+    }
+
+    // Init Auth
+    initAuthLogic();
 
 });

@@ -17,13 +17,37 @@
             </div>
 
             <nav>
-                <a href="#" class="nav-item active" data-view="history">
+                <a href="#" class="nav-item active" data-view="overview">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    Overview
+                </a>
+                <a href="#" class="nav-item" data-view="history">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
                         <polyline points="12 6 12 12 16 14"></polyline>
                     </svg>
                     History
+                </a>
+                <a href="#" class="nav-item" data-view="analytics">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                    Analytics
+                </a>
+                <a href="#" class="nav-item" data-view="tracking">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                    </svg>
+                    Website Tracking
                 </a>
                 <a href="#" class="nav-item" data-view="presets">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -44,22 +68,7 @@
                     </svg>
                     QR Options
                 </a>
-                <a href="#" class="nav-item" data-view="analytics">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="20" x2="18" y2="10"></line>
-                        <line x1="12" y1="20" x2="12" y2="4"></line>
-                        <line x1="6" y1="20" x2="6" y2="14"></line>
-                    </svg>
-                    Analytics
-                </a>
-                <a href="#" class="nav-item" data-view="tracking">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                    </svg>
-                    Website Tracking
-                </a>
+
             </nav>
 
             <div class="sidebar-footer">
@@ -89,22 +98,203 @@
                 <div class="theme-toggle" id="theme-toggle-btn" title="Toggle Dark Mode"></div>
             </header>
 
+            <!-- Overview View -->
+            <div id="view-overview" class="view-section active overview-layout-wide">
+                <div class="overview-welcome-hero">
+                    <div class="welcome-content">
+                        <h2>Master Your Links, Boost Your Brand</h2>
+                        <p>Link Booster is your all-in-one command center for professional link engineering. Whether
+                            you're tracking a massive campaign or sharing a quick QR, we've got you covered.</p>
+                        <div class="welcome-stats-mini">
+                            <div class="mini-stat"><strong>Local History:</strong> Secure & Private</div>
+                            <div class="mini-stat"><strong>Setup:</strong> No Account Required</div>
+                            <div class="mini-stat"><strong>Version:</strong> 2.1</div>
+                        </div>
+                    </div>
+                    <img src="assets/link-booster-logos/rocket-icon.png" class="hero-brand-icon" alt="">
+                </div>
+
+                <div class="overview-section-label">Core Capabilities</div>
+                <div class="features-grid-overview expanded">
+                    <!-- Feature 1: UTM Builder -->
+                    <div class="feature-card large-card">
+                        <div class="feature-icon-circle">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="icon-indigo">
+                                <path
+                                    d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z">
+                                </path>
+                                <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                            </svg>
+                        </div>
+                        <div class="feature-content-box">
+                            <h3>Smart UTM Builder</h3>
+                            <p>Industrial-standard parameter tagging. Save complex campaign presets and apply them in
+                                one click from any page.</p>
+                            <div class="feature-actions">
+                                <a href="#" class="feature-action-link btn-indigo" data-goto="presets">Setup Your First
+                                    Preset →</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Feature 2: QR Branding -->
+                    <div class="feature-card large-card">
+                        <div class="feature-icon-circle">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="icon-orange">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                                <rect x="7" y="7" width="1" height="1"></rect>
+                                <rect x="16" y="7" width="1" height="1"></rect>
+                                <rect x="7" y="16" width="1" height="1"></rect>
+                            </svg>
+                        </div>
+                        <div class="feature-content-box">
+                            <h3>Branded QR Engine</h3>
+                            <p>The only extension that lets you customize QR colors and embed your logo. Professional
+                                quality for print or digital.</p>
+                            <div class="feature-actions">
+                                <a href="#" class="feature-action-link btn-orange" data-goto="qr-settings">Open QR
+                                    Designer →</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Feature 3: Analytics -->
+                    <div class="feature-card large-card">
+                        <div class="feature-icon-circle">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="icon-teal">
+                                <line x1="18" y1="20" x2="18" y2="10"></line>
+                                <line x1="12" y1="20" x2="12" y2="4"></line>
+                                <line x1="6" y1="20" x2="6" y2="14"></line>
+                            </svg>
+                        </div>
+                        <div class="feature-content-box">
+                            <h3>Privacy-First Analytics</h3>
+                            <p>Visual trends without the trackers. See your performance charts and top sources without
+                                ever compromising your data.</p>
+                            <div class="feature-actions">
+                                <a href="#" class="feature-action-link btn-teal" data-goto="analytics">Check My Trends
+                                    →</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overview-section-label">Pro Tools & Tips</div>
+                <div class="overview-bottom-row">
+                    <div class="utility-item">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="u-icon">
+                            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path>
+                        </svg>
+                        <div class="u-text">
+                            <strong>Auto-Clean URLs</strong>
+                            <p>Strips fbclid, gclid, and other tracking junk automatically.</p>
+                        </div>
+                    </div>
+                    <div class="utility-item">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="u-icon">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                        </svg>
+                        <div class="u-text">
+                            <strong>Instant Shortener</strong>
+                            <p>One-click TinyURL generation directly from the popup.</p>
+                        </div>
+                    </div>
+                    <div class="utility-item">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="u-icon">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                            <path
+                                d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                            </path>
+                        </svg>
+                        <div class="u-text">
+                            <strong>Language Sense</strong>
+                            <p>Detects page language for localized notifications.</p>
+                        </div>
+                    </div>
+                    <div class="pro-tip-card">
+                        <div class="tip-header">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f1c40f"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                                style="margin-right: 8px; vertical-align: middle;">
+                                <path
+                                    d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5">
+                                </path>
+                                <line x1="9" y1="18" x2="15" y2="18"></line>
+                                <line x1="10" y1="22" x2="14" y2="22"></line>
+                            </svg>
+                            Did you know?
+                        </div>
+                        <p>Use <strong>Alt+C</strong> while focusing on any webpage to copy & boost its link with Link
+                            Booster</p>
+                        <div class="tip-footer">Designed for your focus and speed.</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Analytics View -->
-            <div id="view-analytics" class="view-section active">
+            <div id="view-analytics" class="view-section">
                 <!-- KPI Cards -->
                 <div class="kpi-grid">
-                    <div class="kpi-card">
-                        <div class="kpi-label">Total Boosted</div>
-                        <div class="kpi-value" id="kpi-total">0</div>
+                    <div class="kpi-card slim">
+                        <div class="kpi-icon-box">
+                            <img src="assets/icons/icon48.png" alt="Logo"
+                                style="width: 24px; height: 24px; object-fit: contain;">
+                        </div>
+                        <div class="kpi-content">
+                            <div class="kpi-main-row">
+                                <span class="kpi-label">Total Boosted</span>
+                                <span class="kpi-value" id="kpi-total">0</span>
+                            </div>
+                            <div class="kpi-compliment" id="compliment-total">Looking good! ✨</div>
+                        </div>
                     </div>
-                    <div class="kpi-card">
-                        <div class="kpi-label">This Week</div>
-                        <div class="kpi-value" id="kpi-week">0</div>
-                        <div class="kpi-trend" id="kpi-trend">--</div>
+
+                    <div class="kpi-card slim">
+                        <div class="kpi-icon-box">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                        </div>
+                        <div class="kpi-content">
+                            <div class="kpi-main-row">
+                                <span class="kpi-label">This Week</span>
+                                <span class="kpi-value" id="kpi-week">0</span>
+                            </div>
+                            <div class="kpi-compliment" id="compliment-week">On fire! 🔥</div>
+                        </div>
                     </div>
-                    <div class="kpi-card">
-                        <div class="kpi-label">Top Source</div>
-                        <div class="kpi-value small" id="kpi-source">--</div>
+
+                    <div class="kpi-card slim">
+                        <div class="kpi-icon-box">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon
+                                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                                </polygon>
+                            </svg>
+                        </div>
+                        <div class="kpi-content">
+                            <div class="kpi-main-row">
+                                <span class="kpi-label">Top Source</span>
+                                <span class="kpi-value small" id="kpi-source">--</span>
+                            </div>
+                            <div class="kpi-compliment" id="compliment-source">Your go-to! 💎</div>
+                        </div>
                     </div>
                 </div>
 
@@ -134,6 +324,9 @@
                 </div>
             </div>
 
+
+
+            <!-- History View (Renamed from tab-dashboard) -->
             <!-- Website Tracking View -->
             <div id="view-tracking" class="view-section" style="display: none;">
                 <!-- Auth Container -->
@@ -236,7 +429,7 @@
                 <!-- Dashboard Container -->
                 <div id="tracking-dashboard-container" style="display: none;">
                     <div class="tracking-header">
-                        <h3>Your Website Stats</h3>
+                        <h3>Extension Usage Stats</h3>
                         <div style="margin-left:auto; display:flex; align-items:center;">
                             <a href="#" id="logout-btn"
                                 style="color:var(--danger-color); text-decoration:none; font-size:14px; font-weight:600; display:flex; align-items:center; gap:6px;">
@@ -252,7 +445,7 @@
                     </div>
 
                     <!-- Script Snippet -->
-                    <div class="script-card">
+                    <div class="script-card" style="display:none;"> <!-- Hidden for local analytics -->
                         <div class="script-header">
                             <span class="script-title">Tracking Script</span>
                             <span class="script-subtitle">Add this to your website's &lt;head&gt;</span>
@@ -280,23 +473,22 @@
                     <!-- New Metrics -->
                     <div class="kpi-grid">
                         <div class="kpi-card">
-                            <div class="kpi-label">Page Views</div>
-                            <div class="kpi-value" id="kpi-views">12,402</div>
-                            <div class="kpi-trend positive">+12%</div>
+                            <div class="kpi-label">Total Boosted</div>
+                            <div class="kpi-value" id="kpi-views">0</div>
                         </div>
                         <div class="kpi-card">
-                            <div class="kpi-label">Avg. Session</div>
-                            <div class="kpi-value" id="kpi-session">2m 14s</div>
+                            <div class="kpi-label">This Week</div>
+                            <div class="kpi-value" id="kpi-session">0</div>
                         </div>
                         <div class="kpi-card">
-                            <div class="kpi-label">Boosted Clicks</div>
-                            <div class="kpi-value" id="kpi-clicks">843</div>
+                            <div class="kpi-label">Top Source</div>
+                            <div class="kpi-value" id="kpi-clicks">0</div>
                         </div>
                     </div>
 
                     <div class="charts-row">
                         <div class="chart-card wide">
-                            <h3>Traffic Overview</h3>
+                            <h3>Activity Overview</h3>
                             <div class="chart-container vertical" id="activity-chart">
                                 <div
                                     style="height:100%; display:flex; align-items:center; justify-content:center; color:var(--secondary-text);">
@@ -325,7 +517,6 @@
                 </div>
             </div>
 
-            <!-- History View (Renamed from tab-dashboard) -->
             <div id="view-history" class="view-section">
                 <div class="controls-bar">
                     <input type="text" id="search-input" placeholder="Search links, campaigns, sources...">
@@ -376,31 +567,32 @@
                         dropdown.</p>
 
                     <div class="preset-form">
-                        <div class="input-group" style="flex: 2;">
-                            <input type="text" id="p-name" class="inline-input floating-input" placeholder=" ">
-                            <label for="p-name" class="floating-label">Preset Name</label>
+                        <div class="input-group">
+                            <input type="text" id="p-name" class="inline-input floating-input p-name-required"
+                                placeholder=" " required>
+                            <label for="p-name" class="floating-label">Preset Name *</label>
                         </div>
-                        <div class="input-group" style="flex: 1;">
+                        <div class="input-group">
                             <input type="text" id="p-source" class="inline-input floating-input" placeholder=" ">
                             <label for="p-source" class="floating-label">utm_source</label>
                         </div>
-                        <div class="input-group" style="flex: 1;">
+                        <div class="input-group">
                             <input type="text" id="p-medium" class="inline-input floating-input" placeholder=" ">
                             <label for="p-medium" class="floating-label">utm_medium</label>
                         </div>
-                        <div class="input-group" style="flex: 1;">
+                        <div class="input-group">
                             <input type="text" id="p-campaign" class="inline-input floating-input" placeholder=" ">
                             <label for="p-campaign" class="floating-label">utm_campaign</label>
                         </div>
-                        <div class="input-group" style="flex: 1;">
+                        <div class="input-group">
                             <input type="text" id="p-id" class="inline-input floating-input" placeholder=" ">
                             <label for="p-id" class="floating-label">utm_id</label>
                         </div>
-                        <div class="input-group" style="flex: 1;">
+                        <div class="input-group">
                             <input type="text" id="p-term" class="inline-input floating-input" placeholder=" ">
                             <label for="p-term" class="floating-label">utm_term</label>
                         </div>
-                        <div class="input-group" style="flex: 1;">
+                        <div class="input-group">
                             <input type="text" id="p-content" class="inline-input floating-input" placeholder=" ">
                             <label for="p-content" class="floating-label">utm_content</label>
                         </div>
@@ -437,7 +629,11 @@
             <!-- QR Options View -->
             <div id="view-qr-settings" class="view-section" style="display: none;">
                 <div class="preset-creation-block">
-                    <h2>QR Code Customization</h2>
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <h2 style="margin: 0;">QR Code Customization</h2>
+                        <button id="save-qr-settings" class="primary-btn">Save Design</button>
+                    </div>
                     <p class="intro">Customize how your QR codes look. Change colors and the center logo.</p>
                     <div class="qr-settings-grid">
                         <!-- Detection Settings -->
@@ -463,7 +659,7 @@
                                 <label for="qr-color-dark" style="flex: 1;">Foreground (Dots):</label>
                                 <div style="display: flex; gap: 8px; align-items: center;">
                                     <input type="text" id="qr-text-dark" class="start-color" value="#000000"
-                                        style="width: 70px; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace;">
+                                        style="width: 70px; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px;">
                                     <input type="color" id="qr-color-dark" value="#000000">
                                 </div>
                             </div>
@@ -471,8 +667,24 @@
                                 <label for="qr-color-light" style="flex: 1;">Background:</label>
                                 <div style="display: flex; gap: 8px; align-items: center;">
                                     <input type="text" id="qr-text-light" class="start-color" value="#ffffff"
-                                        style="width: 70px; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace;">
+                                        style="width: 70px; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px;">
                                     <input type="color" id="qr-color-light" value="#ffffff">
+                                </div>
+                            </div>
+                            <div class="color-picker-row">
+                                <label for="qr-logo-bg-color" style="flex: 1;">Logo Background:</label>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <input type="text" id="qr-text-logo-bg" class="start-color" value="#ffffff"
+                                        style="width: 70px; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px;">
+                                    <input type="color" id="qr-logo-bg-color" value="#ffffff">
+                                </div>
+                            </div>
+                            <div class="color-picker-row">
+                                <label for="qr-logo-frame-color" style="flex: 1;">Logo Frame:</label>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <input type="text" id="qr-text-logo-frame" class="start-color" value="#25D6D7"
+                                        style="width: 70px; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px;">
+                                    <input type="color" id="qr-logo-frame-color" value="#25D6D7">
                                 </div>
                             </div>
                         </div>
@@ -517,8 +729,7 @@
                                 <div id="qr-settings-preview"></div>
                                 <!-- This is just a placeholder, JS will handle real rendering -->
                             </div>
-                            <button id="save-qr-settings" class="primary-btn"
-                                style="margin-top: 20px; width: 100%;">Save Design</button>
+
                         </div>
                     </div>
                 </div>
@@ -668,8 +879,9 @@
         </div>
     </div>
 
-    <script src="assets/qrcode.min.js"></script>
+    <script src="assets/easy.qrcode.min.js"></script>
     <script src="assets/supabase.js"></script>
+
     <script src="options.js"></script>
 </body>
 
