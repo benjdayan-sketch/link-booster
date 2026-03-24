@@ -66,7 +66,7 @@
                         <rect x="14" y="14" width="7" height="7"></rect>
                         <rect x="3" y="14" width="7" height="7"></rect>
                     </svg>
-                    QR Options
+                    Free QR Designer
                 </a>
 
             </nav>
@@ -103,8 +103,7 @@
                 <div class="overview-welcome-hero">
                     <div class="welcome-content">
                         <h2>Master Your Links, Boost Your Brand</h2>
-                        <p>Link Booster is your all-in-one command center for professional link engineering. Whether
-                            you're tracking a massive campaign or sharing a quick QR, we've got you covered.</p>
+                        <p>Link Booster includes a FREE customized QR code generator -- design branded QR codes with your own colors and logo, no account needed. On top of that, clean tracking params, shorten URLs, build UTM campaigns, and auto-detect language for sharing.</p>
                         <div class="welcome-stats-mini">
                             <div class="mini-stat"><strong>Local History:</strong> Secure & Private</div>
                             <div class="mini-stat"><strong>Setup:</strong> No Account Required</div>
@@ -116,7 +115,32 @@
 
                 <div class="overview-section-label">Core Capabilities</div>
                 <div class="features-grid-overview expanded">
-                    <!-- Feature 1: UTM Builder -->
+                    <!-- Feature 1: Free Branded QR Generator -->
+                    <div class="feature-card large-card">
+                        <div class="feature-icon-circle">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="icon-orange">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                                <rect x="7" y="7" width="1" height="1"></rect>
+                                <rect x="16" y="7" width="1" height="1"></rect>
+                                <rect x="7" y="16" width="1" height="1"></rect>
+                            </svg>
+                        </div>
+                        <div class="feature-content-box">
+                            <h3>Free Branded QR Generator</h3>
+                            <p>The only extension with a free QR code generator that lets you customize colors and embed your logo. Professional
+                                quality for print or digital -- no account required. <span class="qr-info-icon" data-qr-tooltip="Generated locally in your browser -- never blocked or limited per views. This QR code is yours to keep. No hidden fees or charges will ever apply.">?</span></p>
+                            <div class="feature-actions">
+                                <a href="#" class="feature-action-link btn-orange" data-goto="qr-settings">Design Your Free QR Code
+                                    →</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Feature 2: UTM Builder -->
                     <div class="feature-card large-card">
                         <div class="feature-icon-circle">
                             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -134,31 +158,6 @@
                             <div class="feature-actions">
                                 <a href="#" class="feature-action-link btn-indigo" data-goto="presets">Setup Your First
                                     Preset →</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Feature 2: QR Branding -->
-                    <div class="feature-card large-card">
-                        <div class="feature-icon-circle">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="icon-orange">
-                                <rect x="3" y="3" width="7" height="7"></rect>
-                                <rect x="14" y="3" width="7" height="7"></rect>
-                                <rect x="14" y="14" width="7" height="7"></rect>
-                                <rect x="3" y="14" width="7" height="7"></rect>
-                                <rect x="7" y="7" width="1" height="1"></rect>
-                                <rect x="16" y="7" width="1" height="1"></rect>
-                                <rect x="7" y="16" width="1" height="1"></rect>
-                            </svg>
-                        </div>
-                        <div class="feature-content-box">
-                            <h3>Branded QR Engine</h3>
-                            <p>The only extension that lets you customize QR colors and embed your logo. Professional
-                                quality for print or digital.</p>
-                            <div class="feature-actions">
-                                <a href="#" class="feature-action-link btn-orange" data-goto="qr-settings">Open QR
-                                    Designer →</a>
                             </div>
                         </div>
                     </div>
@@ -628,108 +627,100 @@
 
             <!-- QR Options View -->
             <div id="view-qr-settings" class="view-section" style="display: none;">
-                <div class="preset-creation-block">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <h2 style="margin: 0;">QR Code Customization</h2>
-                        <button id="save-qr-settings" class="primary-btn">Save Design</button>
+                <div class="qr-designer-page">
+                    <!-- Header -->
+                    <div class="qr-designer-header">
+                        <h2>Free QR Code Designer</h2>
+                        <p class="qr-designer-subtitle">Customize colors, logo, and preview your branded QR code -- download as PNG or SVG. <span class="qr-info-icon" data-qr-tooltip="Generated locally in your browser -- never blocked or limited per views. This QR code is yours to keep. No hidden fees or charges will ever apply.">?</span></p>
                     </div>
-                    <p class="intro">Customize how your QR codes look. Change colors and the center logo.</p>
-                    <div class="qr-settings-grid">
-                        <!-- Detection Settings -->
-                        <div class="qr-section">
-                            <h3>Detection</h3>
-                            <div class="toggle-row">
-                                <span style="flex:1;">Enable QR Detection on Websites</span>
-                                <label class="switch">
-                                    <input type="checkbox" id="qr-enabled-toggle">
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
-                            <p style="font-size: 13px; color: var(--text-secondary); margin-top: 8px;">
-                                When enabled, hovering over a QR code on any website will allow you to copy or visit the
-                                link.
-                            </p>
-                        </div>
 
-                        <!-- Appearance -->
-                        <div class="qr-section">
-                            <h3>Colors</h3>
-                            <div class="color-picker-row">
-                                <label for="qr-color-dark" style="flex: 1;">Foreground (Dots):</label>
-                                <div style="display: flex; gap: 8px; align-items: center;">
-                                    <input type="text" id="qr-text-dark" class="start-color" value="#000000"
-                                        style="width: 70px; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px;">
-                                    <input type="color" id="qr-color-dark" value="#000000">
+                    <!-- Main Layout: Settings + Preview -->
+                    <div class="qr-designer-layout">
+                        <!-- Left: All settings in one card -->
+                        <div class="qr-designer-settings">
+                            <!-- Colors Group -->
+                            <div class="qr-settings-group">
+                                <h3 class="qr-group-title">Colors</h3>
+                                <div class="color-picker-row">
+                                    <label for="qr-color-dark">Foreground (Dots)</label>
+                                    <div class="color-input-group">
+                                        <input type="text" id="qr-text-dark" class="start-color color-hex-input" value="#000000">
+                                        <input type="color" id="qr-color-dark" value="#000000">
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="color-picker-row">
-                                <label for="qr-color-light" style="flex: 1;">Background:</label>
-                                <div style="display: flex; gap: 8px; align-items: center;">
-                                    <input type="text" id="qr-text-light" class="start-color" value="#ffffff"
-                                        style="width: 70px; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px;">
-                                    <input type="color" id="qr-color-light" value="#ffffff">
+                                <div class="color-picker-row">
+                                    <label for="qr-color-light">Background</label>
+                                    <div class="color-input-group">
+                                        <input type="text" id="qr-text-light" class="start-color color-hex-input" value="#ffffff">
+                                        <input type="color" id="qr-color-light" value="#ffffff">
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="color-picker-row">
-                                <label for="qr-logo-bg-color" style="flex: 1;">Logo Background:</label>
-                                <div style="display: flex; gap: 8px; align-items: center;">
-                                    <input type="text" id="qr-text-logo-bg" class="start-color" value="#ffffff"
-                                        style="width: 70px; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px;">
-                                    <input type="color" id="qr-logo-bg-color" value="#ffffff">
+                                <div class="color-picker-row">
+                                    <label for="qr-logo-bg-color">Logo Background</label>
+                                    <div class="color-input-group">
+                                        <input type="text" id="qr-text-logo-bg" class="start-color color-hex-input" value="#ffffff">
+                                        <input type="color" id="qr-logo-bg-color" value="#ffffff">
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="color-picker-row">
-                                <label for="qr-logo-frame-color" style="flex: 1;">Logo Frame:</label>
-                                <div style="display: flex; gap: 8px; align-items: center;">
-                                    <input type="text" id="qr-text-logo-frame" class="start-color" value="#25D6D7"
-                                        style="width: 70px; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px;">
-                                    <input type="color" id="qr-logo-frame-color" value="#25D6D7">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Logo -->
-                        <div class="qr-section">
-                            <h3>Center Logo</h3>
-
-                            <div class="toggle-row" style="margin-bottom: 20px;">
-                                <span>No Logo Center</span>
-                                <label class="switch">
-                                    <input type="checkbox" id="qr-no-logo">
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
-
-                            <div id="logo-upload-container">
-                                <p style="margin-bottom: 10px; font-size: 14px; color: var(--text-secondary);">Upload a
-                                    custom logo (PNG/JPG, max 50KB recommended). Default is Link Booster.</p>
-
-                                <div class="logo-preview-area">
-                                    <img id="qr-logo-preview" src="assets/icons/icon48.png" alt="QR Logo Preview"
-                                        style="width: 48px; height: 48px; object-fit: contain; border: 1px solid #ddd; padding: 2px; border-radius: 4px;">
-                                    <div class="logo-actions">
-                                        <input type="file" id="qr-logo-input" accept="image/png, image/jpeg"
-                                            style="display: none;">
-                                        <button id="upload-logo-btn" class="secondary-btn small-btn">Upload New</button>
-                                        <button id="reset-logo-btn" class="danger-btn small-btn"
-                                            style="background: none; color: #ff7675; border: 1px solid #ff7675;">Reset
-                                            to Default</button>
+                                <div class="color-picker-row">
+                                    <label for="qr-logo-frame-color">Logo Frame</label>
+                                    <div class="color-input-group">
+                                        <input type="text" id="qr-text-logo-frame" class="start-color color-hex-input" value="#25D6D7">
+                                        <input type="color" id="qr-logo-frame-color" value="#25D6D7">
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Live Preview -->
-                        <div class="qr-section">
-                            <h3>Preview</h3>
-                            <div id="qr-preview-container"
-                                style="display: flex; justify-content: center; align-items: center; padding: 20px; background: #f9f9f9; border-radius: 8px;">
-                                <!-- QR Code will be rendered here by JS -->
-                                <div id="qr-settings-preview"></div>
-                                <!-- This is just a placeholder, JS will handle real rendering -->
+                            <hr class="qr-divider">
+
+                            <!-- Center Logo Group -->
+                            <div class="qr-settings-group">
+                                <div class="qr-group-title-row">
+                                    <h3 class="qr-group-title">Center Logo</h3>
+                                    <label class="switch">
+                                        <input type="checkbox" id="qr-no-logo">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div id="logo-upload-container" class="logo-upload-area">
+                                    <img id="qr-logo-preview" src="assets/icons/icon48.png" alt="QR Logo Preview" class="qr-logo-thumb">
+                                    <div class="logo-meta">
+                                        <span class="logo-hint">PNG / JPG, max 50 KB</span>
+                                        <div class="logo-actions">
+                                            <input type="file" id="qr-logo-input" accept="image/png, image/jpeg" style="display: none;">
+                                            <button id="upload-logo-btn" class="secondary-btn small-btn">Upload</button>
+                                            <button id="reset-logo-btn" class="secondary-btn small-btn" style="color: #ff7675; border-color: #ff7675;">Reset</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
+                            <hr class="qr-divider">
+
+                            <!-- Detection Group -->
+                            <div class="qr-settings-group qr-detection-group">
+                                <div class="qr-group-title-row">
+                                    <div>
+                                        <h3 class="qr-group-title">QR Detection</h3>
+                                        <p class="qr-detection-hint">Hover over QR codes on any website to copy or visit the link.</p>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" id="qr-enabled-toggle">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Preview + Save -->
+                        <div class="qr-designer-preview">
+                            <div class="qr-preview-card">
+                                <span class="qr-preview-label">Live Preview</span>
+                                <div id="qr-preview-container" class="qr-preview-box">
+                                    <div id="qr-settings-preview"></div>
+                                </div>
+                                <button id="save-qr-settings" class="primary-btn qr-save-btn">Save Design</button>
+                            </div>
                         </div>
                     </div>
                 </div>

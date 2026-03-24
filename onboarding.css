@@ -533,14 +533,14 @@ kbd {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px;
+    gap: 10px;
     width: 100%;
 }
 
 /* QR Visuals */
 .qr-mockup {
-    width: 100px;
-    height: 100px;
+    width: 80px;
+    height: 80px;
     background: white;
     padding: 10px;
     border-radius: 8px;
@@ -554,15 +554,17 @@ kbd {
 }
 
 .qr-dots {
-    width: 80px;
-    height: 80px;
+    width: 60px;
+    height: 60px;
     background-image: radial-gradient(black 40%, transparent 40%);
     background-size: 10px 10px;
 }
 
 .qr-badges {
     display: flex;
-    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
     animation: slideUp 0.5s ease forwards 0.2s;
     opacity: 0;
     transform: translateY(20px);
@@ -933,4 +935,50 @@ kbd {
         width: 0%;
         opacity: 0;
     }
+}
+
+/* QR Info Tooltip */
+.qr-info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    line-height: 1;
+    font-size: 11px;
+    font-weight: 700;
+    color: #25D6D7;
+    background: rgba(37, 214, 215, 0.1);
+    border: 1px solid rgba(37, 214, 215, 0.3);
+    border-radius: 50%;
+    cursor: help;
+    position: relative;
+    vertical-align: middle;
+    margin-left: 4px;
+    font-style: normal;
+}
+
+.qr-info-icon:hover {
+    background: #25D6D7;
+    color: white;
+}
+
+.qr-info-icon:hover::after {
+    content: attr(data-qr-tooltip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.4;
+    padding: 10px 14px;
+    border-radius: 8px;
+    white-space: pre-line;
+    width: 260px;
+    z-index: 1000;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }

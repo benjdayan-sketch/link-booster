@@ -309,6 +309,27 @@ input:checked+.slider:before {
   margin-left: -5px;
 }
 
+/* QR Card Tooltip: Centered in viewport to avoid clipping */
+.qr-card .info-icon {
+  position: static;
+}
+
+.qr-card h3 {
+  position: relative;
+}
+
+.qr-card .info-icon:hover:after {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 240px;
+}
+
+.qr-card .info-icon:hover:before {
+  display: none;
+}
+
 /* Added .header block as per instruction */
 .header {
   position: relative;

@@ -109,7 +109,7 @@ async function showQrOnPage(tabId, finalUrl) {
 
       // Title
       const title = document.createElement('h3');
-      title.textContent = 'QR Code';
+      title.textContent = 'Your Free QR Code';
       title.style.margin = '0 0 16px 0';
       title.style.color = '#2d3436';
       title.style.fontFamily = 'Segoe UI, sans-serif';

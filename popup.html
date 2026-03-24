@@ -40,7 +40,7 @@
         </svg>
         Copy Boosted Link
       </button>
-      <button id="qr-btn" class="secondary-btn" title="Generate QR Code"
+      <button id="qr-btn" class="secondary-btn" title="Generate a free custom QR code with your brand colors and logo"
         style="width: auto; padding: 0 12px; gap: 6px;">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -49,7 +49,7 @@
           <rect x="14" y="14" width="7" height="7"></rect>
           <path d="M3 14h7v7H3z"></path>
         </svg>
-        QR Code
+        <span>Free QR Code</span>
       </button>
     </div>
 
@@ -57,15 +57,15 @@
     <div id="qr-overlay" class="qr-overlay" style="display: none;">
       <div class="qr-card">
         <button id="close-qr" class="close-btn">&times;</button>
-        <h3>QR Code</h3>
+        <h3>Your Free QR Code <span class="info-icon" data-tooltip="Generated locally in your browser -- never blocked or limited per views.&#10;This QR code is yours to keep. No hidden fees or charges will ever apply.">?</span></h3>
         <div class="qr-wrapper">
           <div id="qrcode"></div>
           <img src="assets/icons/icon48.png" class="qr-logo" alt="Logo">
         </div>
         <div id="qr-url" class="qr-url"></div>
         <div class="qr-actions">
-          <button id="download-png" class="action-btn small-btn">Download PNG</button>
-          <button id="download-svg" class="action-btn small-btn">Download SVG</button>
+          <button id="download-png" class="action-btn small-btn">Download Free PNG</button>
+          <button id="download-svg" class="action-btn small-btn">Download Free SVG</button>
         </div>
       </div>
     </div>
